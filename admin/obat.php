@@ -4,7 +4,7 @@
     <!-- Main Content -->
     <div class="p-4">
         <h1 class="text-3xl font-bold">Dashboard</h1>
-        <p class="mt-2 text-gray-600">Selamat datang di halaman admin.</p>
+        <p class="mt-2 text-gray-600">Selamat datang di hobatn.</p>
     </div>
 
     <script src="script.js"></script>

@@ -1,8 +1,5 @@
 {
   "devDependencies": {
-    "tailwindcss": "^3.4.15"
-  },
-  "scripts": {
-    "build": "npx tailwindcss -i ./css/style.css -o ./css/output.css --watch"
+    "prettier": "^3.0.0-alpha.6"
   }
 }
