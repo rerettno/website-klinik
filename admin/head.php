@@ -13,24 +13,6 @@
     $status = 'Admin'; // Status tetap hardcoded
 
 
-    // Proses Tambah Data
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama_poli = $_POST['name'];
-    $deskripsi = $_POST['description'];
-
-    $sql = "INSERT INTO poli (nama_poli, keterangan) VALUES (?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $nama_poli, $deskripsi);
-
-    if ($stmt->execute()) {
-        $message = "Data berhasil ditambahkan.";
-    } else {
-        $message = "Gagal menambahkan data: " . $stmt->error;
-    }
-
-    $stmt->close();
-}
-
 ?>
 
 <!DOCTYPE html>

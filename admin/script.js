@@ -1,24 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Drawer Menu
-    const drawer = document.getElementById('drawer-navigation');
-    const overlay = document.getElementById('drawer-overlay');
-    const toggleButton = document.querySelector('[data-drawer-target="drawer-navigation"]');
-
-    if (drawer && overlay && toggleButton) {
-        // Toggle Drawer
-        toggleButton.addEventListener('click', function () {
-            drawer.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        });
-
-        // Close Drawer on Overlay Click
-        overlay.addEventListener('click', function () {
-            drawer.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        });
+    // Flash Message
+    const flashMessage = document.getElementById('flash-message');
+    if (flashMessage) {
+        setTimeout(() => {
+            flashMessage.style.transition = 'opacity 0.5s';
+            flashMessage.style.opacity = '0';
+            setTimeout(() => flashMessage.remove(), 500);
+        }, 2000);
     }
 
-    // Modal Popup for Add
+    // Modal Tambah
     const modal = document.getElementById('modal');
     const modalOverlay = document.getElementById('modal-overlay');
     const openModalBtn = document.getElementById('openModalBtn');
@@ -36,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Modal Popup for Edit
+    // Modal Edit
     const editModal = document.getElementById('edit-modal');
     const editCloseBtn = document.getElementById('edit-close-btn');
     const editButtons = document.querySelectorAll('.edit-btn');
@@ -44,57 +35,51 @@ document.addEventListener('DOMContentLoaded', function () {
     if (editModal && editCloseBtn && editButtons) {
         editButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Fetch data from the row (optional)
                 const row = button.closest('tr');
                 const name = row.querySelector('.poli-name').textContent.trim();
-                const description = row.querySelector('.poli-description').textContent.trim();
+                const description = row.querySelector('.poli-keterangan').textContent.trim();
 
-                // Populate modal inputs
                 document.getElementById('edit-name').value = name;
                 document.getElementById('edit-description').value = description;
 
-                // Show modal
+                const id = button.getAttribute('data-id');
+                const editForm = document.getElementById('edit-form');
+                editForm.setAttribute('action', `poli.php?id=${id}`);
+
                 editModal.classList.remove('hidden');
             });
         });
 
-        // Close modal
         editCloseBtn.addEventListener('click', () => {
             editModal.classList.add('hidden');
         });
     }
 
-    // Modal Popup for Delete
+    // Modal Hapus
     const deleteModal = document.getElementById('delete-modal');
     const deleteCancelBtn = document.getElementById('delete-cancel-btn');
     const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
     const deleteButtons = document.querySelectorAll('.delete-btn');
 
-    let rowToDelete = null; // Store row to delete
-
     if (deleteModal && deleteCancelBtn && deleteConfirmBtn && deleteButtons) {
         deleteButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Store row to delete
-                rowToDelete = button.closest('tr');
-                // Show modal
+                const id = button.getAttribute('data-id');
+                deleteConfirmBtn.setAttribute('data-id', id);
                 deleteModal.classList.remove('hidden');
             });
         });
 
-        // Cancel delete
         deleteCancelBtn.addEventListener('click', () => {
             deleteModal.classList.add('hidden');
-            rowToDelete = null;
         });
 
-        // Confirm delete
         deleteConfirmBtn.addEventListener('click', () => {
-            if (rowToDelete) {
-                rowToDelete.remove(); // Remove the row from table
-                rowToDelete = null;
+            const id = deleteConfirmBtn.getAttribute('data-id');
+            if (id) {
+                window.location.href = `delete_poli.php?id=${id}`;
             }
-            deleteModal.classList.add('hidden');
         });
     }
 });
+
