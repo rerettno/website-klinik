@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Ambil data dari atribut data-fields dalam bentuk objek JSON
                 const fields = JSON.parse(button.dataset.fields);
 
-
                 // Debug log untuk memeriksa data yang diambil
                 console.log('Data dari tombol:', fields);
                 

@@ -5,7 +5,7 @@ include 'sideMenu.php';
 $message = ''; // Untuk menyimpan flash message
 
 // Proses Tambah Data
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_GET['id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $nama_dokter = $_POST['dokter-name'] ?? '';
     $nip = $_POST['nip'] ?? '';
     $id_poli = $_POST['penempatan'] ?? '';
@@ -29,27 +29,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_GET['id'])) {
 
 // Proses Edit Data
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $nama_dokter = $_POST['dokter-name'] ?? '';
-    $nip = $_POST['nip'] ?? '';
-    $id_poli = $_POST['penempatan'] ?? '';
-    $alamat = $_POST['alamat'] ?? '';
-    $no_hp = $_POST['phone'] ?? '';
+    $id = $_GET['id'];
+    $nip = $_POST['edit-nip'];
+    $name = $_POST['edit-name'];
+    $penempatan = $_POST['edit-penempatan'];
+    $alamat = $_POST['edit-alamat'];
+    $phone = $_POST['edit-phone'];
 
-    if (!empty($nama_dokter) && !empty($id_poli)) {
-        $sql = "UPDATE dokter SET nama = ?,nip = ?, id_poli = ?, alamat = ?, no_hp = ? WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("siiss", $nama_dokter,$nip, $id_poli, $alamat, $no_hp, $id);
+    $sql = "UPDATE dokter SET nip = ?, nama = ?, id_poli = ?, alamat = ?, no_hp = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssissi", $nip, $name, $penempatan, $alamat, $phone, $id);
 
-        if ($stmt->execute()) {
-            $message = "Data dokter berhasil diperbarui.";
-        } else {
-            $message = "Gagal memperbarui data: " . $stmt->error;
-        }
-
-        $stmt->close();
+    if ($stmt->execute()) {
+        $message = "Data berhasil diperbarui.";
+    } else {
+        $message = "Gagal memperbarui data: " . $stmt->error;
     }
+
+    $stmt->close();
 }
+
 
 // Proses Hapus Data
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
@@ -129,40 +128,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
             </div>
         </div>
 
-<!-- Modal Edit -->
-<div id="edit-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Edit Data Dokter</h2>
-        <form id="edit-form" method="POST">
-            <div class="mb-4">
-                <label for="edit-nip" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP</label>
-                <input type="text" id="edit-nip" name="edit-nip" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+        <!-- Modal Edit -->
+        <div id="edit-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+                <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Edit Data Dokter</h2>
+                <form id="edit-form" method="POST">
+                    <!-- NIP -->
+                    <div class="mb-4">
+                        <label for="edit-nip" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP</label>
+                        <input type="text" id="edit-nip" name="edit-nip" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                    </div>
+                    <!-- Nama Dokter -->
+                    <div class="mb-4">
+                        <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Dokter</label>
+                        <input type="text" id="edit-name" name="edit-name" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                    </div>
+                    <!-- Penempatan Poli -->
+                    <div class="mb-4">
+                        <label for="edit-penempatan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Penempatan Poli</label>
+                        <select id="edit-penempatan" name="edit-penempatan" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                            <option value="">Pilih Poli</option>
+                            <?php
+                            $poliQuery = "SELECT id, nama_poli FROM poli WHERE active = TRUE";
+                            $poliResult = $conn->query($poliQuery);
+                            while ($poliRow = $poliResult->fetch_assoc()):
+                            ?>
+                            <option 
+                                value="<?= htmlspecialchars($poliRow['id']); ?>" 
+                                <?= isset($fields['penempatan']) && $poliRow['id'] == $fields['penempatan'] ? 'selected' : ''; ?>>
+                                <?= htmlspecialchars($poliRow['nama_poli']); ?>
+                            </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                    <!-- Alamat -->
+                    <div class="mb-4">
+                        <label for="edit-alamat" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat</label>
+                        <input type="text" id="edit-alamat" name="edit-alamat" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    </div>
+                    <!-- Telepon -->
+                    <div class="mb-4">
+                        <label for="edit-phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Telepon</label>
+                        <input type="tel" id="edit-phone" name="edit-phone" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                    </div>
+                    <!-- Actions -->
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="edit-close-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700">Tutup</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600">Simpan</button>
+                    </div>
+                </form>
             </div>
-            <div class="mb-4">
-                <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Dokter</label>
-                <input type="text" id="edit-name" name="edit-name" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
-            </div>
-            <div class="mb-4">
-                <label for="edit-penempatan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Penempatan Poli</label>
-                <input type="text" id="edit-penempatan" name="edit-penempatan" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            </div>
-            <div class="mb-4">
-                <label for="edit-alamat" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alamat</label>
-                <input type="text" id="edit-alamat" name="edit-alamat" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            </div>
-            <div class="mb-4">
-                <label for="edit-phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Telepon</label>
-                <input type="tel" id="edit-phone" name="edit-phone" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button type="button" id="edit-close-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700">Tutup</button>
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600">Simpan</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-
+        </div>
 
         <!-- Modal Hapus -->
         <div id="delete-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -207,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                             <?= htmlspecialchars($row['nama']); ?>
                         </td>
                         <td class="px-6 py-4 id-poli">
-                            <?= htmlspecialchars($row['id_poli']); ?>
+                            <?= htmlspecialchars($row['nama_poli']); ?>
                         </td>
                         <td class="px-6 py-4 dokter-alamat">
                             <?= htmlspecialchars($row['alamat']); ?>
@@ -219,15 +235,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                             <button 
                                 class="edit-btn text-blue-500 hover:underline" 
                                 data-id="<?= htmlspecialchars($row['id']); ?>"
-                                data-fields='{
-                                    "nip": "<?= htmlspecialchars($row['nip']); ?>",
-                                    "name": "<?= htmlspecialchars($row['nama_dokter']); ?>",
-                                    "penempatan": "<?= htmlspecialchars($row['id_poli']); ?>",
-                                    "alamat": "<?= htmlspecialchars($row['alamat']); ?>",
-                                    "phone": "<?= htmlspecialchars($row['telepon']); ?>"
-                                }'>
+                                data-fields='<?= htmlspecialchars(json_encode([
+                                    "nip" => $row['nip'],
+                                    "name" => $row['nama'],
+                                    "penempatan" => $row['nama_poli'],
+                                    "alamat" => $row['alamat'],
+                                    "phone" => $row['no_hp']
+                                ])); ?>'>
                                 Edit
                             </button>
+
                             <button 
                                 class="delete-btn text-red-500 hover:underline" 
                                 data-id="<?= htmlspecialchars($row['id']); ?>">
