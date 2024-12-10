@@ -100,10 +100,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (deleteModal && deleteCancelBtn && deleteConfirmBtn && deleteButtons) {
         deleteButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const id = button.getAttribute('data-id');
-                deleteConfirmBtn.setAttribute('data-id', id);
-                deleteModal.classList.remove('hidden');
-            });
+        const id = button.getAttribute('data-id');
+        const url = button.getAttribute('data-url'); // Ambil URL yang benar
+
+        deleteConfirmBtn.setAttribute('data-url', url); // Simpan ke tombol konfirmasi
+        deleteConfirmBtn.setAttribute('data-id', id); // Simpan ke tombol konfirmasi
+        deleteModal.classList.remove('hidden');
+    });
+
+
         });
 
         deleteCancelBtn.addEventListener('click', () => {
@@ -113,11 +118,15 @@ document.addEventListener('DOMContentLoaded', function () {
         deleteConfirmBtn.addEventListener('click', () => {
             const id = deleteConfirmBtn.getAttribute('data-id');
             if (id) {
-                window.location.href = `${currentPath}?id=${id}`; // Gunakan path otomatis
+                window.location.href = `${currentPath}`; // Gunakan path otomatis
                 deleteModal.classList.add('hidden');
             }
-        });
-    }
+            const url = deleteConfirmBtn.getAttribute('data-url'); // Ambil URL dari tombol konfirmasi
+            if (url) {
+                window.location.href = url; // Redirect ke URL yang sudah disiapkan
+            }
+                });
+            }
 
     
 });

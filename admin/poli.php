@@ -104,27 +104,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
             </div>
         </div>
 
-<!-- Modal Edit -->
-<div id="edit-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Edit Data Poli</h2>
-        <form id="edit-form" method="POST">
-            <div class="mb-4">
-                <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Poli</label>
-                <input type="text" id="edit-name" name="edit-name" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+        <!-- Modal Edit -->
+        <div id="edit-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+                <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Edit Data Poli</h2>
+                <form id="edit-form" method="POST">
+                    <div class="mb-4">
+                        <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Poli</label>
+                        <input type="text" id="edit-name" name="edit-name" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Keterangan</label>
+                        <textarea id="edit-description" name="edit-description" rows="4" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="edit-close-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700">Tutup</button>
+                        <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600">Simpan</button>
+                    </div>
+                </form>
             </div>
-            <div class="mb-4">
-                <label for="edit-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Keterangan</label>
-                <textarea id="edit-description" name="edit-description" rows="4" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button type="button" id="edit-close-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700">Tutup</button>
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600">Simpan</button>
-            </div>
-        </form>
-    </div>
-</div>
-
+        </div>
 
 
         <!-- Modal Hapus -->
@@ -146,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     <tr>
                         <th scope="col" class="px-6 py-3">Poli</th>
                         <th scope="col" class="px-6 py-3">Keterangan</th>
+                        <th scope="col" class="px-6 py-3">Status</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -164,17 +164,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                         <td class="px-6 py-4 poli-keterangan">
                             <?= htmlspecialchars($row['keterangan']); ?>
                         </td>
+                        <td class="px-6 py-4 status">
+                            <span class="text-green-500 font-semibold">Tersedia</span>
+                        </td>
                         <td class="px-6 py-4 flex space-x-2">
-<button 
-    class="edit-btn text-blue-500 hover:underline" 
-    data-id="<?= htmlspecialchars($row['id']); ?>"
-    data-fields='{"name": "<?= htmlspecialchars($row['nama_poli']); ?>", "description": "<?= htmlspecialchars($row['keterangan']); ?>"}'>
-    Edit
-</button>
+                            <button 
+                                class="edit-btn text-blue-500 hover:underline" 
+                                data-id="<?= htmlspecialchars($row['id']); ?>"
+                                data-fields='{"name": "<?= htmlspecialchars($row['nama_poli']); ?>", "description": "<?= htmlspecialchars($row['keterangan']); ?>"}'>
+                                Edit
+                            </button>
 
                             <button 
                                 class="delete-btn text-red-500 hover:underline" 
-                                data-id="<?= htmlspecialchars($row['id']); ?>">
+                                data-url="?id=<?= htmlspecialchars($row['id']);?>">
                                 Hapus
                             </button>
                         </td>

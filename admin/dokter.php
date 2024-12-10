@@ -202,6 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                         <th scope="col" class="px-6 py-3">Poli</th>
                         <th scope="col" class="px-6 py-3">Alamat</th>
                         <th scope="col" class="px-6 py-3">No. Telepon</th>
+                        <th scope="col" class="px-6 py-3">Status</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -231,6 +232,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                         <td class="px-6 py-4 dokter-handphone">
                             <?= htmlspecialchars($row['no_hp']); ?>
                         </td>
+                        <td class="px-6 py-4 status">
+                            <span class="text-green-500 font-semibold">Aktif</span>
+                        </td>
                         <td class="px-6 py-4 flex space-x-2">
                             <button 
                                 class="edit-btn text-blue-500 hover:underline" 
@@ -247,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
 
                             <button 
                                 class="delete-btn text-red-500 hover:underline" 
-                                data-id="<?= htmlspecialchars($row['id']); ?>">
+                                data-url="?id=<?= htmlspecialchars($row['id']);?>">
                                 Hapus
                             </button>
                         </td>
@@ -257,7 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     else:
                     ?>
                     <tr>
-                        <td colspan="5" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
+                        <td colspan="6" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
                     </tr>
                     <?php endif; ?>
                 </tbody>

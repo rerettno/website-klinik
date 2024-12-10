@@ -1,26 +1,53 @@
 <?php include 'head.php'; ?>
 <?php include 'sideMenu.php'; 
+
 $message = ''; // Untuk menyimpan flash message
 
-// Proses Hapus Data
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'], $_GET['type'])) {
     $id = intval($_GET['id']);
-    $sql = "UPDATE poli SET active = TRUE WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
+    $type = $_GET['type'];
 
-    if ($stmt->execute()) {
-        $message = "Data berhasil dipulihkan";
-    } else {
-        $message = "Gagal mempulihkan data: " . $stmt->error;
+    if ($type === 'restore-poli') {
+        $sql = "UPDATE poli SET active = TRUE WHERE id = ?";
+    } elseif ($type === 'restore-dokter') {
+        $sql = "UPDATE dokter SET active = TRUE WHERE id = ?";
+    } elseif ($type === 'restore-obat') {
+        $sql = "UPDATE obat SET active = TRUE WHERE id =?";
+    }else {
+        $sql = null;
     }
 
-    $stmt->close();
+    if ($sql) {
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            if ($type === 'restore-poli') {
+                $message = "Data Poli berhasil dipulihkan.";
+            } elseif ($type === 'restore-dokter') {
+                $message = "Data Dokter berhasil dipulihkan.";
+            } else {
+                $message = "Data Obat berhasil dipulihkan.";
+            }
+        } else {
+            $message = "Gagal memproses data: " . $stmt->error;
+        }
+
+
+        $stmt->close();
+    } else {
+        $message = "Aksi tidak valid.";
+    }
 }
+
 ?>
 
     <!-- Main Content -->
     <div class="p-4 sm:p-6">
+         <?php if (!empty($message)): ?>
+            <div id="flash-message" class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg">
+                <?= htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
         <!-- Table -->
         <div class="relative overflow-x-auto shadow-md rounded-md sm:rounded-lg mt-2">
             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -28,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     <tr>
                         <th scope="col" class="px-6 py-3">Poli</th>
                         <th scope="col" class="px-6 py-3">Keterangan</th>
+                        <th scope="col" class="px-6 py-3">Status</th>
                         <th scope="col" class="px-6 py-3">Aksi</th>
                     </tr>
                 </thead>
@@ -46,10 +74,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                         <td class="px-6 py-4 poli-keterangan">
                             <?= htmlspecialchars($row['keterangan']); ?>
                         </td>
+                        <td class="px-6 py-4 status">
+                            <span class="text-red-500 font-semibold">Tidak Tersedia</span>
+                        </td>
                         <td class="px-6 py-4 flex space-x-2">
                             <button 
                                 class="delete-btn text-red-500 hover:underline" 
-                                data-id="<?= htmlspecialchars($row['id']); ?>">
+                                data-url="?id=<?= htmlspecialchars($row['id']); ?>&type=restore-poli">
+                                Pulihkan
+                            </button>
+
+                        </td>
+                    </tr>
+                    <?php
+                        endwhile;
+                    else:
+                    ?>
+                    <tr>
+                        <td colspan="6" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table -->
+        <div class="relative overflow-x-auto shadow-md rounded-md sm:rounded-lg mt-2">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-blue-100 dark:bg-gray-700 dark:text-gray-200">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">NIP</th>
+                        <th scope="col" class="px-6 py-3">Nama Dokter</th>
+                        <th scope="col" class="px-6 py-3">Poli</th>
+                        <th scope="col" class="px-6 py-3">Alamat</th>
+                        <th scope="col" class="px-6 py-3">No. Telepon</th>
+                        <th scope="col" class="px-6 py-3">Status</th>
+                        <th scope="col" class="px-6 py-3">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $sql = "SELECT dokter.*, poli.nama_poli FROM dokter 
+                            JOIN poli ON dokter.id_poli = poli.id 
+                            WHERE dokter.active = FALSE";
+                    $result = $conn->query($sql);
+
+                    if ($result->num_rows > 0):
+                        while ($row = $result->fetch_assoc()):
+                    ?>
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-800">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white dokter-nip">
+                            <?= htmlspecialchars($row['nip']); ?>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white dokter-name">
+                            <?= htmlspecialchars($row['nama']); ?>
+                        </td>
+                        <td class="px-6 py-4 id-poli">
+                            <?= htmlspecialchars($row['nama_poli']); ?>
+                        </td>
+                        <td class="px-6 py-4 dokter-alamat">
+                            <?= htmlspecialchars($row['alamat']); ?>
+                        </td>
+                        <td class="px-6 py-4 dokter-handphone">
+                            <?= htmlspecialchars($row['no_hp']); ?>
+                        </td>
+                        <td class="px-6 py-4 status">
+                            <span class="text-red-500 font-semibold">Tidak Aktif</span>
+                        </td>
+                        <td class="px-6 py-4 flex space-x-2">
+                            <button 
+                                class="delete-btn text-red-500 hover:underline" 
+                                data-url="?id=<?= htmlspecialchars($row['id']); ?>&type=restore-dokter">
+                                Pulihkan
+                            </button>
+
+                        </td>
+                    </tr>
+                    <?php
+                        endwhile;
+                    else:
+                    ?>
+                    <tr>
+                        <td colspan="5" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table -->
+        <div class="relative overflow-x-auto shadow-md rounded-md sm:rounded-lg mt-2">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-blue-100 dark:bg-gray-700 dark:text-gray-200">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">Nama Obat</th>
+                        <th scope="col" class="px-6 py-3">Jenis Kemasan</th>
+                        <th scope="col" class="px-6 py-3">Harga</th>
+                        <th scope="col" class="px-6 py-3">Status</th>
+                        <th scope="col" class="px-6 py-3">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $sql = "SELECT * FROM obat where active = False";
+                    $result = $conn->query($sql);
+
+                    if ($result->num_rows > 0):
+                        while ($row = $result->fetch_assoc()):
+                    ?>
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-800">
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white obat-name">
+                            <?= htmlspecialchars($row['nama_obat']); ?>
+                        </td>
+                        <td class="px-6 py-4 kemasan">
+                            <?= htmlspecialchars($row['kemasan']); ?>
+                        </td>
+                        <td class="px-6 py-4 obat-harga">
+                            <?= htmlspecialchars($row['harga']); ?>
+                        </td>                        
+                        <td class="px-6 py-4 status">
+                            <span class="text-red-500 font-semibold">Tidak Tersedia</span>
+                        </td>
+                        <td class="px-6 py-4 flex space-x-2">
+                            <button 
+                                class="delete-btn text-red-500 hover:underline" 
+                                data-url="?id=<?= htmlspecialchars($row['id']); ?>&type=restore-obat">
                                 Pulihkan
                             </button>
                         </td>
@@ -59,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     else:
                     ?>
                     <tr>
-                        <td colspan="3" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
+                        <td colspan="5" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
                     </tr>
                     <?php endif; ?>
                 </tbody>
