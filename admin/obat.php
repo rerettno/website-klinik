@@ -66,7 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     <div class="p-4 sm:p-6">
         <?php if (!empty($message)): ?>
             <div id="flash-message" class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg">
-                <?= htmlspecialchars($message); ?>
+                <?= htmlspecialchars($message); ?>                
+                <script>
+                setTimeout(() => { window.location.href = 'obat.php'; },2000); // Redirect setelah 2 detik
+                </script>
             </div>
         <?php endif; ?>
 

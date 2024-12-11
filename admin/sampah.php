@@ -46,6 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'], $_GET['type'])) {
          <?php if (!empty($message)): ?>
             <div id="flash-message" class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg">
                 <?= htmlspecialchars($message); ?>
+                
+                <script>
+                setTimeout(() => { window.location.href = 'sampah.php'; },2000); // Redirect setelah 2 detik
+                </script>
             </div>
         <?php endif; ?>
         <!-- Table -->
@@ -155,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'], $_GET['type'])) {
                     else:
                     ?>
                     <tr>
-                        <td colspan="5" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
+                        <td colspan="8" class="px-4 py-2 text-center text-gray-300 dark:bg-gray-800 dark:border-gray-800">Belum ada data.</td>
                     </tr>
                     <?php endif; ?>
                 </tbody>

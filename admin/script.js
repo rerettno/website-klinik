@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+
     // Flash Message
     const flashMessage = document.getElementById('flash-message');
     if (flashMessage) {
@@ -43,10 +44,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Ambil URL file PHP saat ini
-    const currentPath = window.location.pathname;
-
-
     // Modal Edit
     const editModal = document.getElementById('edit-modal');
     const editCloseBtn = document.getElementById('edit-close-btn');
@@ -55,33 +52,25 @@ document.addEventListener('DOMContentLoaded', function () {
     if (editModal && editCloseBtn && editButtons) {
         editButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Ambil data dari atribut data-fields dalam bentuk objek JSON
                 const fields = JSON.parse(button.dataset.fields);
-
-                // Debug log untuk memeriksa data yang diambil
                 console.log('Data dari tombol:', fields);
-                
-                // Isi form secara dinamis berdasarkan data fields
-        const editForm = document.getElementById('edit-form');
-        if (editForm) {
-            Object.keys(fields).forEach(key => {
-                const inputElement = editForm.querySelector(`#edit-${key}`);
-                if (inputElement) {
-                    inputElement.value = fields[key];
+
+                // Isi form berdasarkan data yang diambil
+                const editForm = document.getElementById('edit-form');
+                if (editForm) {
+                    Object.keys(fields).forEach(key => {
+                        const inputElement = editForm.querySelector(`#edit-${key}`);
+                        if (inputElement) {
+                            inputElement.value = fields[key];
+                        }
+                    });
+                    // Set action form jika diperlukan
+                    editForm.setAttribute('action', `${window.location.pathname}?id=${button.dataset.id}`);
                 }
+
+                // Tampilkan modal
+                editModal.classList.remove('hidden');
             });
-
-            // Set action form jika perlu
-            editForm.setAttribute('action', `${window.location.pathname}?id=${button.dataset.id}`);
-        }
-
-
- // Tampilkan modal
-        const editModal = document.getElementById('edit-modal');
-        if (editModal) {
-            editModal.classList.remove('hidden');
-        }
-    });
         });
 
         // Tutup modal
@@ -89,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function () {
             editModal.classList.add('hidden');
         });
     }
-
 
     // Modal Hapus
     const deleteModal = document.getElementById('delete-modal');
@@ -100,15 +88,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (deleteModal && deleteCancelBtn && deleteConfirmBtn && deleteButtons) {
         deleteButtons.forEach(button => {
             button.addEventListener('click', () => {
-        const id = button.getAttribute('data-id');
-        const url = button.getAttribute('data-url'); // Ambil URL yang benar
+                const id = button.getAttribute('data-id');
+                const url = button.getAttribute('data-url');
 
-        deleteConfirmBtn.setAttribute('data-url', url); // Simpan ke tombol konfirmasi
-        deleteConfirmBtn.setAttribute('data-id', id); // Simpan ke tombol konfirmasi
-        deleteModal.classList.remove('hidden');
-    });
-
-
+                deleteConfirmBtn.setAttribute('data-url', url);
+                deleteConfirmBtn.setAttribute('data-id', id);
+                deleteModal.classList.remove('hidden');
+            });
         });
 
         deleteCancelBtn.addEventListener('click', () => {
@@ -116,18 +102,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         deleteConfirmBtn.addEventListener('click', () => {
-            const id = deleteConfirmBtn.getAttribute('data-id');
-            if (id) {
-                window.location.href = `${currentPath}`; // Gunakan path otomatis
-                deleteModal.classList.add('hidden');
-            }
-            const url = deleteConfirmBtn.getAttribute('data-url'); // Ambil URL dari tombol konfirmasi
+            const url = deleteConfirmBtn.getAttribute('data-url');
             if (url) {
-                window.location.href = url; // Redirect ke URL yang sudah disiapkan
+                window.location.href = url; // Redirect ke URL untuk penghapusan
             }
-                });
-            }
-
-    
+        });
+    }
 });
-

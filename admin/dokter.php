@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' ) {
     if (!empty($nama_dokter) && !empty($id_poli)) {
         $sql = "INSERT INTO dokter (nama,nip, id_poli, alamat, no_hp) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("siiss", $nama_dokter, $nip, $id_poli, $alamat, $no_hp);
+        $stmt->bind_param("sssss", $nama_dokter, $nip, $id_poli, $alamat, $no_hp);
 
         if ($stmt->execute()) {
             $message = "Data dokter berhasil ditambahkan.";
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
 
     $sql = "UPDATE dokter SET nip = ?, nama = ?, id_poli = ?, alamat = ?, no_hp = ? WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssissi", $nip, $name, $penempatan, $alamat, $phone, $id);
+    $stmt->bind_param("sssssi", $nip, $name, $penempatan, $alamat, $phone, $id);
 
     if ($stmt->execute()) {
         $message = "Data berhasil diperbarui.";
@@ -71,6 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
         <?php if (!empty($message)): ?>
             <div id="flash-message" class="p-4 mb-4 text-sm text-white bg-green-500 rounded-lg">
                 <?= htmlspecialchars($message); ?>
+                <script>
+                setTimeout(() => { window.location.href = 'dokter.php'; },2000); // Redirect setelah 2 detik
+                </script>
             </div>
         <?php endif; ?>
 
@@ -118,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     </div>
                     <div class="mb-4">
                         <label for="phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nomor Telepon</label>
-                        <input type="tel" name="phone" id="phone" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="0812-3456-7890" pattern="[0-9]{4}-[0-9]{4}-[0-9]{4}" required>
+                        <input type="number" name="phone" id="phone" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="081234567890"  required>
                     </div>
                     <div class="flex justify-end">
                         <button id="closeModalBtn" type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-700 mr-2">Tutup</button>
@@ -169,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     <!-- Telepon -->
                     <div class="mb-4">
                         <label for="edit-phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Telepon</label>
-                        <input type="tel" id="edit-phone" name="edit-phone" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        <input type="number" id="edit-phone" name="edit-phone" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                     </div>
                     <!-- Actions -->
                     <div class="flex justify-end space-x-2">
