@@ -48,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
 
 // Proses Hapus Data
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
+    //dia harus ngecek unk memastikan didala id initidak ada dokter yg sedang aktip. jika ada maka dia akan memberitahu kaau adadokter yg sedang aktif
     $id = intval($_GET['id']);
     $sql = "UPDATE poli SET active = FALSE WHERE id = ?";
     $stmt = $conn->prepare($sql);

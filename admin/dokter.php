@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                     <?php
                     $sql = "SELECT dokter.*, poli.nama_poli FROM dokter 
                             JOIN poli ON dokter.id_poli = poli.id 
-                            WHERE dokter.active = TRUE";
+                            WHERE dokter.active = TRUE and poli.active  = TRUE ";
                     $result = $conn->query($sql);
 
                     if ($result->num_rows > 0):

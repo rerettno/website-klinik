@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'], $_GET['type'])) {
         <!-- Table -->
         <div class="relative overflow-x-auto shadow-md rounded-md sm:rounded-lg mt-2">
             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-200">
+                <thead class="text-xs text-gray-700 uppercase bg-blue-100 dark:bg-gray-700 dark:text-gray-200">
                     <tr>
                         <th scope="col" class="px-6 py-3">Poli</th>
                         <th scope="col" class="px-6 py-3">Keterangan</th>
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'], $_GET['type'])) {
                             <?= htmlspecialchars($row['keterangan']); ?>
                         </td>
                         <td class="px-6 py-4 status">
-                            <span class="text-red-500 font-semibold">Tidak Tersedia</span>
+                            <span class="text-red-500 font-semibold">Tidak Aktif</span>
                         </td>
                         <td class="px-6 py-4 flex space-x-2">
                             <button 
