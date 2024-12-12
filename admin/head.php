@@ -2,6 +2,10 @@
     include '../db/db.php';
     session_start();
 
+    // Fungsi untuk validasi akses
+    require '../db/auth.php';
+    validateAccess('admin'); // Validasi akses untuk admin
+    
     // Cek apakah user sudah login
     if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
         header('Location: ../index.php');
