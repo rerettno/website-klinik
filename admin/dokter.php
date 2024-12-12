@@ -4,6 +4,8 @@ include 'sideMenu.php';
 
 $message = ''; // Untuk menyimpan flash message
 
+//idnya dibuat generate aja. nip juga. nanti cek kalau nambah data dngn nip itu maka gagal. 
+//terus nanti login bisa nip atau id terus plus nama. 
 // Proses Tambah Data
 if ($_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $nama_dokter = $_POST['dokter-name'] ?? '';

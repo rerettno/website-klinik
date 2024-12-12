@@ -6,17 +6,19 @@
 // Pastikan variabel $conn sudah tersedia dari koneksi database
 
 // Hitung jumlah poli
-$sql_poli = "SELECT COUNT(*) AS total_poli FROM poli";
+$sql_poli = "SELECT COUNT(*) AS total_poli FROM poli where active = TRUE";
 $result_poli = $conn->query($sql_poli);
 $total_poli = $result_poli->fetch_assoc()['total_poli'] ?? 0;
 
 // Hitung jumlah dokter
-$sql_dokter = "SELECT COUNT(*) AS total_dokter FROM dokter";
+$sql_dokter = "SELECt COUNT(*) AS total_dokter FROM dokter 
+                            JOIN poli ON dokter.id_poli = poli.id 
+                            WHERE dokter.active = TRUE and poli.active  = TRUE";
 $result_dokter = $conn->query($sql_dokter);
 $total_dokter = $result_dokter->fetch_assoc()['total_dokter'] ?? 0;
 
 // Hitung jumlah obat
-$sql_obat = "SELECT COUNT(*) AS total_obat FROM obat";
+$sql_obat = "SELECT COUNT(*) AS total_obat FROM obat where active = TRUE";
 $result_obat = $conn->query($sql_obat);
 $total_obat = $result_obat->fetch_assoc()['total_obat'] ?? 0;
 

@@ -2,8 +2,10 @@
 session_start();
 
 // Hardcoded username dan password
-$admin_username = 'admin';
-$admin_password = 'password123';
+//nanti disini ngecek, jika dktrxxx login ke dokter
+
+$admin_username = 'adm001';
+$admin_password = 'BK Hospital';
 
 // Proses logout
 if (isset($_GET['logout'])) {
@@ -48,14 +50,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php endif; ?>
         <form action="" method="POST" class="space-y-4">
             <div>
-                <label for="username" class="block text-sm font-medium text-gray-600">Username</label>
+                <label for="username" class="block text-sm font-medium text-gray-600">ID Pengguna</label>
                 <input type="text" name="username" id="username" placeholder="Masukkan username"
                     class="w-full px-4 py-2 mt-1 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none"
                     required>
             </div>
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-600">Password</label>
-                <input type="password" name="password" id="password" placeholder="Masukkan password"
+                <label for="password" class="block text-sm font-medium text-gray-600">Nama Pengguna</label>
+                <input type="text" name="password" id="password" placeholder="Masukkan password"
                     class="w-full px-4 py-2 mt-1 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none"
                     required>
             </div>
