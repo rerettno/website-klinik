@@ -81,5 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p>&copy; 2024 BK HOSPITAL. All rights reserved.</p>
     </div>
 </footer>
+<script src="script.js"></script>
 </body>
 </html>

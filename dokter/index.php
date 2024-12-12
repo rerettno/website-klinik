@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dokter Section</title>
-</head>
-<body>
-    <h1>dokter</h1>
+<?php include 'head.php'; ?>
+<?php include 'sideMenu.php'; ?>
+
+    <h1 class="text-3xl font-bold dark:text-white text-center">Dashboard</h1>
+    <p class="mt-2 text-gray-600 dark:text-gray-100 text-center">Selamat Beraktivitas Kembali</p>
+
+    <script src="../admin/script.js"></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ include 'head.php';
         <div>
             <h1 class="text-4xl font-extrabold mb-4">Caring for Your Health</h1>
             <p class="text-lg mb-6">We provide high-quality healthcare services with the latest medical technology.</p>
-            <a href="#" class="bg-teal-500 px-6 py-3 rounded-full text-white font-medium hover:bg-teal-400 transition">
+            <a href="pendaftaran.php" class="bg-teal-500 px-6 py-3 rounded-full text-white font-medium hover:bg-teal-400 transition">
                 Book an Appointment
             </a>
         </div>
