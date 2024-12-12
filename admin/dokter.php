@@ -4,51 +4,83 @@ include 'sideMenu.php';
 
 $message = ''; // Untuk menyimpan flash message
 
-//idnya dibuat generate aja. nip juga. nanti cek kalau nambah data dngn nip itu maka gagal. 
-//terus nanti login bisa nip atau id terus plus nama. 
 // Proses Tambah Data
-if ($_SERVER['REQUEST_METHOD'] === 'POST' ) {
-    $nama_dokter = $_POST['dokter-name'] ?? '';
-    $nip = $_POST['nip'] ?? '';
-    $id_poli = $_POST['penempatan'] ?? '';
-    $alamat = $_POST['alamat'] ?? '';
-    $no_hp = $_POST['phone'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_GET['id'])) {
+    $nama_dokter = trim($_POST['dokter-name'] ?? '');
+    $id_poli = trim($_POST['penempatan'] ?? '');
+    $alamat = trim($_POST['alamat'] ?? '');
+    $no_hp = trim($_POST['phone'] ?? '');
 
     if (!empty($nama_dokter) && !empty($id_poli)) {
-        $sql = "INSERT INTO dokter (nama,nip, id_poli, alamat, no_hp) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssss", $nama_dokter, $nip, $id_poli, $alamat, $no_hp);
+        $conn->begin_transaction(); // Mulai transaksi
 
-        if ($stmt->execute()) {
-            $message = "Data dokter berhasil ditambahkan.";
-        } else {
-            $message = "Gagal menambahkan data: " . $stmt->error;
+        try {
+            // Generate NIP
+            $tahun_daftar = date('y'); // 2 digit terakhir tahun
+            $bulan_daftar = date('m'); // 2 digit bulan
+            $prefix_nip = "DR$tahun_daftar$bulan_daftar.";
+
+            // Cari urutan terakhir
+            $stmt_urut = $conn->prepare("
+                SELECT MAX(CAST(SUBSTRING(nip, 8) AS UNSIGNED)) AS urut_terakhir 
+                FROM dokter 
+                WHERE nip LIKE CONCAT(?, '%')
+            ");
+            $stmt_urut->bind_param('s', $prefix_nip);
+            $stmt_urut->execute();
+            $stmt_urut->bind_result($urut_terakhir);
+            $stmt_urut->fetch();
+            $stmt_urut->close();
+
+            // Tentukan urutan baru
+            $urut = ($urut_terakhir) ? $urut_terakhir + 1 : 1;
+            $nip = $prefix_nip . str_pad($urut, 3, '0', STR_PAD_LEFT);
+
+            // Hash password default
+            $password_hashed = password_hash('12345', PASSWORD_DEFAULT);
+
+            // Tambahkan data dokter
+            $stmt_insert = $conn->prepare("
+                INSERT INTO dokter (nama, nip, id_poli, alamat, no_hp, password) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt_insert->bind_param("ssssss", $nama_dokter, $nip, $id_poli, $alamat, $no_hp, $password_hashed);
+            $stmt_insert->execute();
+            $stmt_insert->close();
+
+            // Commit transaksi
+            $conn->commit();
+            $message = "Data dokter berhasil ditambahkan dengan NIP: $nip.";
+        } catch (Exception $e) {
+            // Rollback transaksi jika terjadi error
+            $conn->rollback();
+            $message = "Gagal menambahkan data: " . $e->getMessage();
         }
-
-        $stmt->close();
+    } else {
+        $message = "Nama dokter dan penempatan wajib diisi.";
     }
 }
 
+
 // Proses Edit Data
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $nip = $_POST['edit-nip'];
-    $name = $_POST['edit-name'];
-    $penempatan = $_POST['edit-penempatan'];
-    $alamat = $_POST['edit-alamat'];
-    $phone = $_POST['edit-phone'];
+    $id = intval($_GET['id']);
+    $nama_dokter = $_POST['edit-name'] ?? '';
+    $id_poli = $_POST['edit-penempatan'] ?? '';
+    $alamat = $_POST['edit-alamat'] ?? '';
+    $no_hp = $_POST['edit-phone'] ?? '';
 
-    $sql = "UPDATE dokter SET nip = ?, nama = ?, id_poli = ?, alamat = ?, no_hp = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssi", $nip, $name, $penempatan, $alamat, $phone, $id);
+    // Hapus opsi edit NIP dan password
+    $stmt_update = $conn->prepare("UPDATE dokter SET nama = ?, id_poli = ?, alamat = ?, no_hp = ? WHERE id = ?");
+    $stmt_update->bind_param("ssssi", $nama_dokter, $id_poli, $alamat, $no_hp, $id);
 
-    if ($stmt->execute()) {
-        $message = "Data berhasil diperbarui.";
+    if ($stmt_update->execute()) {
+        $message = "Data dokter berhasil diperbarui.";
     } else {
-        $message = "Gagal memperbarui data: " . $stmt->error;
+        $message = "Gagal memperbarui data: " . $stmt_update->error;
     }
 
-    $stmt->close();
+    $stmt_update->close();
 }
 
 
@@ -95,11 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
         <div id="modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
                 <h2  class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Tambah Data Dokter</h2>
-                <form  action="#" method="POST">                    
-                    <div class="mb-4">
-                        <label for="nip" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP</label>
-                        <input type="text" name="nip" id="nip" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="contoh: 1234567890" required>
-                    </div>
+                <form  action="#" method="POST">  
                     <div class="mb-4">
                         <label for="dokter-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Dokter</label>
                         <input type="text" name="dokter-name" id="dokter-name" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="contoh: dr. Nama" required>
@@ -138,11 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
                 <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Edit Data Dokter</h2>
                 <form id="edit-form" method="POST">
-                    <!-- NIP -->
-                    <div class="mb-4">
-                        <label for="edit-nip" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">NIP</label>
-                        <input type="text" id="edit-nip" name="edit-nip" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
-                    </div>
                     <!-- Nama Dokter -->
                     <div class="mb-4">
                         <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Dokter</label>

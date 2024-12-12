@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->num_rows > 0) {
         // Login berhasil
-        $_SESSION['user'] = $nik;
+        $_SESSION['user'] = $name;
         header("Location: index.php");
         exit;
     } else {
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-teal-50">
 <header class="bg-teal-300">
     <div class="container mx-auto flex items-center justify-between px-6 py-4">
-        <a href="#" class="flex items-center space-x-3">
+        <a href="index.php" class="flex items-center space-x-3">
             <img src="https://flowbite.com/docs/images/logo.svg" class="h-8" alt="Flowbite Logo" />
             <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">BK HOSPITAL</span>
         </a>
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <section class="bg-white text-teal-500 py-16">
     <div class="container mx-auto max-w-xl">
-        <h1 class="text-3xl font-bold text-center mb-6">Login Pasien</h1>
+        <h1 class="text-3xl font-bold text-center mb-6">Selamat Datang !</h1>
         <?php if ($message): ?>
             <div class="mb-4 p-4 text-white bg-red-400 rounded-lg text-center">
                 <?= htmlspecialchars($message) ?>
@@ -57,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <form action="" method="POST" class="bg-teal-50 rounded-lg shadow-lg p-6">
             <div class="mb-4">
-                <label for="nik" class="block text-sm font-medium text-teal-700">NIK</label>
-                <input type="text" id="nik" name="nik" class="w-full mt-1 rounded-md border-gray-300 text-gray-700 shadow-sm" 
+                <label for="nik" class="block text-md font-medium text-teal-700">Nomor Induk Kependudukan</label>
+                <input type="text" id="nik" name="nik" class="w-full mt-2 px-3 py-2 rounded-md border-gray-300 text-gray-700 shadow-sm" 
                        placeholder="Masukkan NIK" required maxlength="16">
             </div>
             <div class="mb-4">
-                <label for="name" class="block text-sm font-medium text-teal-700">Nama Pasien</label>
-                <input type="text" id="name" name="name" class="w-full mt-1 rounded-md border-gray-300 text-gray-700 shadow-sm" 
+                <label for="name" class="block text-md font-medium text-teal-700">Nama Pasien</label>
+                <input type="text" id="name" name="name" class="w-full mt-2 px-3 py-2 rounded-md border-gray-300 text-gray-700 shadow-sm" 
                        placeholder="Masukkan Nama" required>
             </div>
             <div class="text-center">

@@ -80,24 +80,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_GET['id'])) {
         <?php endif; ?>
         <form action="" method="POST" class="bg-teal-50 rounded-lg shadow-lg p-6">
             <div class="mb-4">
-                <label for="nik" class="block text-sm font-medium text-teal-700">NIK</label>
-                <input type="text" id="nik" name="nik" class="w-full mt-1 rounded-md border-gray-300 text-gray-700 shadow-sm"placeholder="Masukkan Nomor Induk Kependudukan" 
+                <label for="nik" class="block text-md font-medium text-teal-700">Nomor Induk Kependudukan</label>
+                <input type="text" id="nik" name="nik" class="w-full mt-2 px-3 py-2 rounded-md border-gray-300 text-gray-700 shadow-sm"placeholder="Masukkan Nomor Induk Kependudukan" 
                             pattern="[0-9]{16}" 
                             maxlength="16" 
                             required
                             title="NIK harus terdiri dari 16 digit angka">
             </div>
             <div class="mb-4">
-                <label for="name" class="block text-sm font-medium text-teal-700">Nama Pasien</label>
-                <input type="text" id="name" name="name" class="w-full mt-1 rounded-md border-gray-300 text-gray-700 shadow-sm" placeholder="Masukkan Nama" required>
+                <label for="name" class="block text-md font-medium text-teal-700">Nama Pasien</label>
+                <input type="text" id="name" name="name" class="w-full mt-2 px-3 py-2 rounded-md border-gray-300 text-gray-700 shadow-sm" placeholder="Masukkan Nama" required>
             </div>
             <div class="mb-4">
-                <label for="alamat" class="block text-sm font-medium text-teal-700">Alamat</label>
-                <textarea id="alamat" name="alamat" class="w-full mt-1 rounded-md border-gray-300 text-gray-700 shadow-sm" rows="4" placeholder="Masukkan Alamat" required></textarea>
+                <label for="alamat" class="block text-md font-medium text-teal-700">Alamat</label>
+                <textarea id="alamat" name="alamat" class="w-full mt-2 px-3 py-2 rounded-md border-gray-300 text-gray-700 shadow-sm" rows="4" placeholder="Masukkan Alamat" required></textarea>
             </div>
             <div class="mb-4">
-                <label for="phone" class="block text-sm font-medium text-teal-700">Nomor Telepon</label>
-                <input type="tel" id="phone" name="phone" class="w-full mt-1 rounded-md border-gray-300 text-gray-700 shadow-sm" placeholder="08xx-xxxx-xxxx" required>
+                <label for="phone" class="block text-md font-medium text-teal-700">Nomor Telepon</label>
+                <input type="tel" id="phone" name="phone" class="w-full mt-2 px-3 py-2 rounded-md border-gray-300 text-gray-700 shadow-sm" placeholder="08xx-xxxx-xxxx" required>
             </div>
             <div class="text-center">
                 <button type="submit" class="bg-teal-500 text-white px-6 py-2 rounded-full font-medium hover:bg-teal-400 transition">Daftar</button>
