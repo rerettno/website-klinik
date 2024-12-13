@@ -27,7 +27,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
             <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">BK HOSPITAL</span>
         </a>
         <nav class="flex items-center">
-            <?php if (isset($_SESSION['user'])): ?>
+            <?php if (isset($_SESSION['user_id'])): ?>
                 <!-- Jika sudah login -->
                 <div class="flex items-center space-x-4">
                     <span class="text-white">Selamat datang, <?= htmlspecialchars($_SESSION['user']); ?></span>

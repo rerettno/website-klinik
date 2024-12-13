@@ -98,8 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                         <label for="kemasan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jenis Kemasan</label>
                         <select id="kemasan" name="kemasan" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             <option value="">Pilih Jenis Kemasan</option>
-                            <option value="botol">Botol</option>
-                            <option value="karton">Karton</option>
+                            <option value="botol">Botol Kaca</option>
+                            <option value="tablet">Tablet</option>
+                            <option value="serbuk">Serbuk</option>
+                            <option value="kapsul">kapsul</option>
                         </select>
                     </div>
                     <div class="mb-4">
@@ -127,9 +129,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
                         <label for="edit-kemasan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jenis Kemasan</label>
                         <select id="edit-kemasan" name="edit-kemasan" class="w-full p-2.5 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
                             <option value="">Pilih Jenis Kemasan</option>
-                            <option value="botol">Botol</option=>
-                            <option value="karton">Karton</option>
-                            </option>
+                            <option value="">Pilih Jenis Kemasan</option>
+                            <option value="botol">Botol Kaca</option>
+                            <option value="tablet">Tablet</option>
+                            <option value="serbuk">Serbuk</option>
+                            <option value="kapsul">kapsul</option>
                         </select>
                     </div>
                     <div class="mb-4">

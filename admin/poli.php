@@ -48,20 +48,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['id'])) {
 
 // Proses Hapus Data
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
-    //dia harus ngecek unk memastikan didala id initidak ada dokter yg sedang aktip. jika ada maka dia akan memberitahu kaau adadokter yg sedang aktif
     $id = intval($_GET['id']);
-    $sql = "UPDATE poli SET active = FALSE WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id);
 
-    if ($stmt->execute()) {
-        $message = "Data berhasil dihapus";
+    // Periksa apakah ada dokter aktif di dalam poli ini
+    $check_sql = "SELECT COUNT(*) AS dokter_aktif FROM dokter WHERE id_poli = ? AND active = TRUE";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("i", $id);
+    $check_stmt->execute();
+    $check_stmt->bind_result($dokter_aktif);
+    $check_stmt->fetch();
+    $check_stmt->close();
+
+    if ($dokter_aktif > 0) {
+        $message = "Tidak dapat menghapus poli ini. Terdapat dokter yang masih aktif.";
     } else {
-        $message = "Gagal menghapus data: " . $stmt->error;
-    }
+        // Jika tidak ada dokter aktif, lanjutkan proses penghapusan
+        $sql = "UPDATE poli SET active = FALSE WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
 
-    $stmt->close();
+        if ($stmt->execute()) {
+            $message = "Data berhasil dihapus.";
+        } else {
+            $message = "Gagal menghapus data: " . $stmt->error;
+        }
+
+        $stmt->close();
+    }
 }
+
 ?>
 
 

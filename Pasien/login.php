@@ -16,8 +16,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        // Login berhasil
-        $_SESSION['user'] = $name;
+        // Ambil data pasien
+        $stmt->bind_result($id_pasien, $nama_pasien);
+        $stmt->fetch();
+
+        // Simpan ID dan nama pasien di session
+        $_SESSION['user'] = $nama_pasien; // Nama pasien untuk ditampilkan
+        $_SESSION['user_id'] = $id_pasien; // ID pasien untuk referensi database
+
+        // Redirect ke halaman utama
         header("Location: index.php");
         exit;
     } else {
@@ -27,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt->close();
 }
+
 ?>
 
 <!DOCTYPE html>
