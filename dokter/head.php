@@ -1,22 +1,38 @@
 <?php
-    include '../db/db.php';
-    session_start();
-    // Fungsi untuk validasi akses
-    require '../db/auth.php';
-    validateAccess('dokter'); // Validasi akses untuk admin
+include '../db/db.php';
+session_start();
 
-    // Cek apakah user sudah login
-    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-        header('Location: ../index.php');
-        exit();
-    }
+// Fungsi untuk validasi akses
+require '../db/auth.php';
+validateAccess('dokter'); // Validasi akses untuk dokter
 
-    // Ambil data dari sesi
-    $username = $_SESSION['nama'] ?? 'Guest';
-    $status = $_SESSION['role']; // Status tetap hardcoded
+// Cek apakah user sudah login
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header('Location: ../index.php');
+    exit();
+}
 
+// Ambil data dari sesi
+$username = $_SESSION['nama'] ?? 'Guest';
+$status = $_SESSION['role'] ?? '';
 
+// Periksa apakah dokter aktif
+$dokter_id = $_SESSION['nip']; // Gunakan NIP sebagai identifier
+$query = "SELECT active FROM dokter WHERE nip = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $dokter_id);
+$stmt->execute();
+$stmt->bind_result($is_active);
+$stmt->fetch();
+$stmt->close();
+
+// Jika dokter tidak aktif, redirect ke dashboard kecuali jika di dashboard
+if (!$is_active && basename($_SERVER['PHP_SELF']) !== 'index.php') {
+    header('Location: index.php?message=inactive');
+    exit();
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
