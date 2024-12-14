@@ -2,7 +2,6 @@
 include 'head.php';
 include 'sideMenu.php';
 
-
 $message = ''; // Pesan untuk umpan balik pengguna
 
 // Ambil ID daftar_poli dari parameter URL
@@ -31,14 +30,22 @@ if (!$pasien) {
 // Jika pasien sudah diperiksa, cegah dokter mengisi form lagi
 $is_already_checked = $pasien['active'];
 
-// Ambil riwayat pemeriksaan pasien
+// Ambil riwayat pemeriksaan pasien (termasuk obat yang diberikan)
 $stmt_riwayat = $conn->prepare("
-    SELECT periksa.tgl_periksa, periksa.catatan, periksa.biaya_periksa, daftar_poli.keluhan AS keluhan_saat_pemeriksaan 
+    SELECT 
+        periksa.tgl_periksa AS tanggal, 
+        periksa.catatan, 
+        daftar_poli.keluhan AS keluhan_saat_pemeriksaan, 
+        periksa.biaya_periksa AS biaya,
+        GROUP_CONCAT(obat.nama_obat SEPARATOR ', ') AS obat
     FROM periksa
     JOIN daftar_poli ON periksa.id_daftar_poli = daftar_poli.id
+    LEFT JOIN detail_periksa ON periksa.id = detail_periksa.id_periksa
+    LEFT JOIN obat ON detail_periksa.id_obat = obat.id
     WHERE daftar_poli.id_pasien = (
         SELECT id_pasien FROM daftar_poli WHERE id = ?
     )
+    GROUP BY periksa.id
     ORDER BY periksa.tgl_periksa DESC
 ");
 $stmt_riwayat->bind_param("i", $id_daftar);
@@ -130,7 +137,6 @@ $stmt_obat->close();
         </div>
     <?php endif; ?>
 
-    <!-- Form Pemeriksaan -->
     <?php if (!$is_already_checked): ?>
         <form action="" method="POST" class="space-y-4 mt-4">
             <!-- Catatan -->
@@ -175,30 +181,12 @@ $stmt_obat->close();
         </thead>
         <tbody>
             <?php while ($row = $result_riwayat->fetch_assoc()): ?>
-                <?php
-                // Ambil data obat dari riwayat
-                $stmt_obat_riwayat = $conn->prepare("
-                    SELECT obat.nama_obat FROM detail_periksa
-                    JOIN obat ON detail_periksa.id_obat = obat.id
-                    WHERE detail_periksa.id_periksa = (
-                        SELECT id FROM periksa WHERE id_daftar_poli = ?
-                    )
-                ");
-                $stmt_obat_riwayat->bind_param("i", $id_daftar);
-                $stmt_obat_riwayat->execute();
-                $result_obat_riwayat = $stmt_obat_riwayat->get_result();
-                $obat_list = [];
-                while ($obat = $result_obat_riwayat->fetch_assoc()) {
-                    $obat_list[] = $obat['nama_obat'];
-                }
-                $stmt_obat_riwayat->close();
-                ?>
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <td class="px-6 py-4"><?= htmlspecialchars(date('d-m-Y', strtotime($row['tgl_periksa']))); ?></td>
+                    <td class="px-6 py-4"><?= htmlspecialchars(date('d-m-Y', strtotime($row['tanggal']))); ?></td>
                     <td class="px-6 py-4"><?= htmlspecialchars($row['catatan']); ?></td>
                     <td class="px-6 py-4"><?= htmlspecialchars($row['keluhan_saat_pemeriksaan']); ?></td>
-                    <td class="px-6 py-4">Rp. <?= number_format($row['biaya_periksa'], 0, ',', '.'); ?></td>
-                    <td class="px-6 py-4"><?= htmlspecialchars(implode(', ', $obat_list)); ?></td>
+                    <td class="px-6 py-4">Rp. <?= $row['biaya']; ?></td>
+                    <td class="px-6 py-4"><?= htmlspecialchars($row['obat']); ?></td>
                 </tr>
             <?php endwhile; ?>
         </tbody>
