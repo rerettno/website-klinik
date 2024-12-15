@@ -1,5 +1,7 @@
 <?php include 'head.php'; ?>
-<?php include 'sideMenu.php'; ?>
+<?php include 'sideMenu.php';
+
+//jadi gini?>
 
     <?php if (isset($_GET['message']) && $_GET['message'] === 'inactive'): ?>
         <div class="p-4 mb-4 text-sm text-white bg-red-500 rounded-lg">

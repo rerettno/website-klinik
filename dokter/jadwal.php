@@ -1,6 +1,13 @@
 <?php
 include 'head.php';
 include 'sideMenu.php';
+//tambahkan aksi menonaktifkan jadwal yg sudah aktif
+//Jadwal periksaDokter adalah seminggusekali. Pada saat hari H jadwalperiksa, Dokter tidak diperbolehkan mengubahhari maupun jam periksanya.
+
+
+// aku ada tambahan dan berkaitan dengan tanggal. jadi mari kita tentukan kalau setiap hari minggu dokter harus memilih jadwal periksa untuk seminggu kedepan 
+// pemilihan jadwal dimulai dari jam 18.00 hingga 23.59. jika diluar itu maka dokter sudah tidak bisa mengengubah jadwal . dan bisa mengubah lagi di minggu depannya 
+
 
 $message = ''; // Pesan untuk umpan balik pengguna
 
