@@ -1,63 +1,131 @@
 <?php
 include 'head.php';
-
+//sisa benerin nomor antrian. bagusnya tambah kolom didatabasenya ya tgl_daftar untuk mempermudah no antrian terus ditambahin kolom tgl mendaftar.  tambah juga jadwa tgl diperiksanya kapan tp g masuk database
 // Pastikan pasien sudah login
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
-    exit();
+    exit();//ase
 }
+
 $user_id = $_SESSION['user_id'];
 $message = "";
 
-// Proses Form Pendaftaran
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $keluhan = $_POST['keluhan'] ?? '';
-    $jadwal = $_POST['jadwal'] ?? '';
+// Ambil waktu server saat inio
+$current_date = new DateTime("now", new DateTimeZone("Asia/Jakarta"));
+$current_day = strtolower($current_date->format('l')); // Nama hari dalam huruf kecil
+$current_time = $current_date->format('H:i'); // Jam dalam format 24-jam (HH:MM)
 
-    if (!empty($keluhan) && !empty($jadwal)) {
-        // Cek jika pasien sudah terdaftar pada jadwal tersebut dan belum diperiksa
-        $stmt_cek = $conn->prepare("
-            SELECT active 
-            FROM daftar_poli 
-            WHERE id_pasien = ? AND id_jadwal = ? 
-            ORDER BY no_antrian DESC LIMIT 1
-        ");
-        $stmt_cek->bind_param('ii', $user_id, $jadwal);
-        $stmt_cek->execute();
-        $stmt_cek->bind_result($status);
-        $stmt_cek->fetch();
-        $stmt_cek->close();
+// Array translasi nama hari
+$hari_map = [
+    'senin' => 'Monday',
+    'selasa' => 'Tuesday',
+    'rabu' => 'Wednesday',
+    'kamis' => 'Thursday',
+    'jumat' => 'Friday',
+    'sabtu' => 'Saturday',
+    'minggu' => 'Sunday',
+];
 
-        if ($status === 0) {
-            $message = "Anda sudah memiliki pendaftaran yang sedang menunggu pemeriksaan.";
+// Periksa apakah pendaftaran sedang ditutup (Minggu 18:00–23:59)
+if ($current_day === 'sunday' && $current_time >= '18:00' && $current_time <= '23:59') {
+    $message = "Pendaftaran sedang ditutup, silakan kembali besok.";
+} else {
+    // Proses Form Pendaftaran
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $keluhan = $_POST['keluhan'] ?? '';
+        $jadwal = $_POST['jadwal'] ?? '';
+
+        if (!empty($keluhan) && !empty($jadwal)) {
+            // Ambil jadwal dokter untuk validasi
+            $stmt_jadwal = $conn->prepare("
+                SELECT hari, jam_mulai, jam_selesai 
+                FROM jadwal_periksa 
+                WHERE id = ? AND active = 1
+            ");
+            $stmt_jadwal->bind_param('i', $jadwal);
+            $stmt_jadwal->execute();
+            $stmt_jadwal->bind_result($jadwal_hari, $jadwal_jam_mulai, $jadwal_jam_selesai);
+            $stmt_jadwal->fetch();
+            $stmt_jadwal->close();
+
+            // Konversi nama hari jadwal ke bahasa Inggris
+            $hari_terpilih = strtolower($jadwal_hari);
+            if (array_key_exists($hari_terpilih, $hari_map)) {
+                $hari_terjemahan = $hari_map[$hari_terpilih];
+
+                // Hitung tanggal jadwal berdasarkan minggu berjalan
+                $start_monday = new DateTime("monday this week", new DateTimeZone("Asia/Jakarta"));
+                $end_sunday = new DateTime("sunday this week", new DateTimeZone("Asia/Jakarta"));
+
+                // Jika hari ini hari Minggu pukul 18:00–23:59, pindahkan ke minggu berikutnya
+                if ($current_day === 'sunday' && $current_time >= '18:00' && $current_time <= '23:59') {
+                    $start_monday->modify('+1 week');
+                    $end_sunday->modify('+1 week');
+                }
+
+                // Tanggal jadwal yang dipilih
+                $tanggal_jadwal = new DateTime(" $hari_terjemahan", new DateTimeZone("Asia/Jakarta"));
+                if ($tanggal_jadwal < $start_monday) {
+                    $tanggal_jadwal->modify('+1 week'); // Pastikan tanggal jadwal ada di minggu berjalan atau berikutnya
+                }
+                if (
+                    $tanggal_jadwal->format('Y-m-d') === $current_date->format('Y-m-d') && 
+                    $current_time > $jadwal_jam_selesai
+                ) {
+                    $message = "Pendaftaran tidak dapat dilakukan karena waktu jadwal sudah selesai untuk hari ini.";
+                } elseif ($tanggal_jadwal > $end_sunday) {
+                    $message = "Pendaftaran tidak dapat dilakukan karena jssadwal sudah melewati batas waktu minggu ini.";
+                } else {
+                    // Cek apakah pasien sudah terdaftar pada jadwal tersebut
+                    $stmt_cek = $conn->prepare("
+                        SELECT active 
+                        FROM daftar_poli 
+                        WHERE id_pasien = ? AND id_jadwal = ? 
+                        ORDER BY no_antrian DESC LIMIT 1
+                    ");
+                    $stmt_cek->bind_param('ii', $user_id, $jadwal);
+                    $stmt_cek->execute();
+                    $stmt_cek->bind_result($status);
+                    $stmt_cek->fetch();
+                    $stmt_cek->close();
+
+                    if ($status === 0) {
+                        $message = "Anda sudah memiliki pendaftaran yang sedang menunggu pemeriksaan.";
+                    } else {
+                        // Ambil nomor antrian terakhir untuk jadwal
+                        $stmt_antrian = $conn->prepare("
+                            SELECT MAX(no_antrian) 
+                    FROM daftar_poli 
+                    WHERE id_jadwal = ? AND tgl_daftar = ?
+                        ");
+                        $tgl_daftar = $current_date->format('Y-m-d'); // Tanggal hari ini
+                $stmt_antrian->bind_param('is', $jadwal, $tgl_daftar);
+                        $stmt_antrian->execute();
+                        $stmt_antrian->bind_result($no_antrian_terakhir);
+                        $stmt_antrian->fetch();
+                        $stmt_antrian->close();
+
+                        $no_antrian = $no_antrian_terakhir ? $no_antrian_terakhir + 1 : 1;
+
+                        // Simpan pendaftaran baru
+                        $tanggal_jadwal_formatted = $tanggal_jadwal->format('Y-m-d');
+                        $stmt_daftar = $conn->prepare("
+                    INSERT INTO daftar_poli (id_pasien, id_jadwal, keluhan, no_antrian, tgl_daftar, active)
+                    VALUES (?, ?, ?, ?, ?, 0)
+                ");
+                $stmt_daftar->bind_param('iisds', $user_id, $jadwal, $keluhan, $no_antrian, $tgl_daftar);
+                        $stmt_daftar->execute();
+                        $stmt_daftar->close();
+
+                        $message = "Pendaftaran berhasil untuk tanggal {$tanggal_jadwal_formatted}. Nomor antrian Anda: $no_antrian.";
+                    }
+                }
+            } else {
+                $message = "Hari pada jadwal tidak valid.";
+            }
         } else {
-            // Ambil nomor antrian terakhir untuk jadwal
-            $stmt_antrian = $conn->prepare("
-                SELECT MAX(no_antrian) 
-                FROM daftar_poli 
-                WHERE id_jadwal = ?
-            ");
-            $stmt_antrian->bind_param('i', $jadwal);
-            $stmt_antrian->execute();
-            $stmt_antrian->bind_result($no_antrian_terakhir);
-            $stmt_antrian->fetch();
-            $stmt_antrian->close();
-
-            $no_antrian = $no_antrian_terakhir ? $no_antrian_terakhir + 1 : 1;
-
-            // Tambahkan pendaftaran baru
-            $stmt_daftar = $conn->prepare("
-                INSERT INTO daftar_poli (id_pasien, id_jadwal, keluhan, no_antrian, active)
-                VALUES (?, ?, ?, ?, 0)
-            ");
-            $stmt_daftar->bind_param('iisi', $user_id, $jadwal, $keluhan, $no_antrian);
-            $stmt_daftar->execute();
-            $stmt_daftar->close();
-
-            $message = "Pendaftaran berhasil. Nomor antrian Anda: $no_antrian.";
+            $message = "Harap lengkapi semua data sebelum mendaftar.";
         }
-    } else {
-        $message = "Harap lengkapi semua data sebelum mendaftar.";
     }
 }
 
@@ -119,20 +187,7 @@ $result_riwayat = $stmt_riwayat->get_result();
 $stmt_riwayat->close();
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Dashboard Pasien</title>
-</head>
-
-<body class="bg-gray-50">
-    <header class="bg-teal-300 px-6 py-4">
-        <h1 class="text-2xl font-bold text-white text-center">Dashboard Pasien</h1>
-    </header>
 
     <main class="container mx-auto mt-6">
         <!-- Form Pendaftaran -->
