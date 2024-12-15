@@ -93,45 +93,62 @@ $stmt_pasien->close();
 
 <!-- Modal Detail Riwayat -->
 <div id="riwayatModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-4xl relative">
+        <button 
+            class="absolute top-3 right-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+            onclick="hideRiwayat()"
+        >
+            ✖
+        </button>
         <h3 class="text-xl font-bold text-gray-700 dark:text-gray-100 mb-4">Riwayat Pemeriksaan</h3>
-        <p><strong>Nama Pasien:</strong> <span id="modal-nama"></span></p>
-        <table class="mt-4 w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
-                <tr>
-                    <th scope="col" class="px-6 py-3">Tanggal Pemeriksaan</th>
-                    <th scope="col" class="px-6 py-3">Keluhan Pasien</th>
-                    <th scope="col" class="px-6 py-3">Catatan Pemeriksaan</th>
-                    <th scope="col" class="px-6 py-3">Obat</th>
-                </tr>
-            </thead>
-            <tbody id="modal-riwayat"></tbody>
-        </table>
+        <p class="mb-4">
+            <strong>Nama Pasien:</strong> <span id="modal-nama" class="text-gray-800 dark:text-gray-200"></span>
+        </p>
+        <div class="overflow-x-auto">
+            <table class="table-auto min-w-full text-sm text-left text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 min-w-[150px] border border-gray-200 dark:border-gray-700">Tanggal Pemeriksaan</th>
+                        <th scope="col" class="px-6 py-3 min-w-[200px] border border-gray-200 dark:border-gray-700">Keluhan Pasien</th>
+                        <th scope="col" class="px-6 py-3 min-w-[200px] border border-gray-200 dark:border-gray-700">Catatan Pemeriksaan</th>
+                        <th scope="col" class="px-6 py-3 min-w-[150px] border border-gray-200 dark:border-gray-700">Obat</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-riwayat" class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
         <div class="mt-6 flex justify-end space-x-2">
-            <button class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600" onclick="hideRiwayat()">Tutup</button>
+            <button 
+                class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 focus:outline-none"
+                onclick="hideRiwayat()"
+            >
+                Tutup
+            </button>
         </div>
     </div>
 </div>
 
+
+
 <script src="../admin/script.js"></script>
 <script>
-// Tampilkan modal dengan data riwayat
 function showRiwayat(nama, riwayat) {
     document.getElementById('modal-nama').textContent = nama;
 
     const tbody = document.getElementById('modal-riwayat');
     tbody.innerHTML = ''; // Kosongkan isi tabel
 
-    // Proses riwayat (format: tgl_periksa|keluhan|catatan|obat)
     const records = riwayat.split('||');
     records.forEach(record => {
         const [tgl_periksa, keluhan, catatan, obat] = record.split('|');
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td class="px-6 py-4">${tgl_periksa}</td>
-            <td class="px-6 py-4">${keluhan}</td>
-            <td class="px-6 py-4">${catatan}</td>
-            <td class="px-6 py-4">${obat}</td>
+            <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${tgl_periksa}</td>
+            <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${keluhan}</td>
+            <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${catatan}</td>
+            <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${obat}</td>
         `;
         tbody.appendChild(row);
     });
