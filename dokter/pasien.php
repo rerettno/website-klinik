@@ -1,7 +1,7 @@
 <?php
 include 'head.php';
 include 'sideMenu.php';
-
+//tambahkan tampilan jumlah biaya yg dibuatuntuk memprediksi harga yg akan diambil pasien.sebelum dimasukin ke database
 // Pastikan dokter sudah login
 if (!isset($_SESSION['nip'])) {
     header('Location: login.php');
