@@ -22,7 +22,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 
 <header class="bg-teal-300">
     <div class="container mx-auto flex items-center justify-between px-6 py-4">
-        <a href="#" class="flex items-center space-x-3">
+        <a href="index.php" class="flex items-center space-x-3">
             <img src="https://flowbite.com/docs/images/logo.svg" class="h-8" alt="Flowbite Logo" />
             <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">BK HOSPITAL</span>
         </a>

@@ -2,6 +2,24 @@
 include 'head.php';
 include 'sideMenu.php';
 
+// Pastikan dokter sudah login
+if (!isset($_SESSION['nip'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Ambil ID dokter berdasarkan NIP dari sesi
+$stmt_dokter = $conn->prepare("SELECT id FROM dokter WHERE nip = ?");
+$stmt_dokter->bind_param("s", $_SESSION['nip']);
+$stmt_dokter->execute();
+$stmt_dokter->bind_result($id_dokter);
+$stmt_dokter->fetch();
+$stmt_dokter->close();
+
+if (!$id_dokter) {
+    die("Dokter tidak valid.");
+}
+
 $message = ''; // Pesan untuk umpan balik pengguna
 
 // Ambil ID daftar_poli dari parameter URL
@@ -27,10 +45,10 @@ if (!$pasien) {
     die("Data pasien tidak ditemukan.");
 }
 
-// Jika pasien sudah diperiksa, cegah dokter mengisi form lagi
+// Cegah pemeriksaan ulang jika pasien sudah diperiksa
 $is_already_checked = $pasien['active'];
 
-// Ambil riwayat pemeriksaan pasien (termasuk obat yang diberikan)
+// Ambil riwayat pemeriksaan pasien oleh dokter yang login
 $stmt_riwayat = $conn->prepare("
     SELECT 
         periksa.tgl_periksa AS tanggal, 
@@ -40,15 +58,18 @@ $stmt_riwayat = $conn->prepare("
         GROUP_CONCAT(obat.nama_obat SEPARATOR ', ') AS obat
     FROM periksa
     JOIN daftar_poli ON periksa.id_daftar_poli = daftar_poli.id
+    JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id
     LEFT JOIN detail_periksa ON periksa.id = detail_periksa.id_periksa
     LEFT JOIN obat ON detail_periksa.id_obat = obat.id
-    WHERE daftar_poli.id_pasien = (
-        SELECT id_pasien FROM daftar_poli WHERE id = ?
-    )
+    WHERE 
+        daftar_poli.id_pasien = (
+            SELECT id_pasien FROM daftar_poli WHERE id = ?
+        )
+        AND jadwal_periksa.id_dokter = ? -- Filter berdasarkan dokter login
     GROUP BY periksa.id
     ORDER BY periksa.tgl_periksa DESC
 ");
-$stmt_riwayat->bind_param("i", $id_daftar);
+$stmt_riwayat->bind_param("ii", $id_daftar, $id_dokter);
 $stmt_riwayat->execute();
 $result_riwayat = $stmt_riwayat->get_result();
 $stmt_riwayat->close();
@@ -125,6 +146,7 @@ $result_obat = $stmt_obat->get_result();
 $stmt_obat->close();
 ?>
 
+<!-- Tampilan -->
 <h1 class="text-3xl font-bold dark:text-white text-center">Pemeriksaan Pasien</h1>
 <p class="mt-2 text-gray-600 dark:text-gray-100 text-center">Pasien: <?= htmlspecialchars($pasien['nama']); ?></p>
 
@@ -185,7 +207,7 @@ $stmt_obat->close();
                     <td class="px-6 py-4"><?= htmlspecialchars(date('d-m-Y', strtotime($row['tanggal']))); ?></td>
                     <td class="px-6 py-4"><?= htmlspecialchars($row['catatan']); ?></td>
                     <td class="px-6 py-4"><?= htmlspecialchars($row['keluhan_saat_pemeriksaan']); ?></td>
-                    <td class="px-6 py-4">Rp. <?= $row['biaya']; ?></td>
+                    <td class="px-6 py-4">Rp. <?= number_format($row['biaya'], 0, ',', '.'); ?></td>
                     <td class="px-6 py-4"><?= htmlspecialchars($row['obat']); ?></td>
                 </tr>
             <?php endwhile; ?>
