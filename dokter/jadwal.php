@@ -102,6 +102,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['activate'])) {
         $message = "Gagal mengaktifkan jadwal: " . $e->getMessage();
     }
 }
+// proses nonaktifkan jadwal
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['deactivate'])) {
+    $id_jadwal = intval($_GET['deactivate']);
+
+    try {
+        $conn->begin_transaction();
+
+        // Nonaktifkan jadwal yang dipilih
+        $stmt_deactivate = $conn->prepare("UPDATE jadwal_periksa SET active = 0 WHERE id = ? AND id_dokter = ?");
+        $stmt_deactivate->bind_param("ii", $id_jadwal, $id_dokter);
+        $stmt_deactivate->execute();
+        $stmt_deactivate->close();
+
+        $conn->commit();
+        $message = "Jadwal berhasil dinonaktifkan.";
+    } catch (Exception $e) {
+        $conn->rollback();
+        $message = "Gagal menonaktifkan jadwal: " . $e->getMessage();
+    }
+}
 
 // Ambil semua jadwal dokter untuk ditampilkan
 $stmt_jadwal = $conn->prepare("
@@ -152,7 +172,7 @@ $stmt_jadwal->close();
                             <a href="?activate=<?= $row['id']; ?>" 
                                 class="text-blue-500 hover:underline">Aktifkan</a>
                         <?php else: ?>
-                            <span class="text-gray-500">Aktif</span>
+                            <a href="?deactivate=<?= $row['id']; ?>" class="text-gray-500">Nonaktifkan</a> </a>
                         <?php endif; ?>
                     </td>
                 </tr>
