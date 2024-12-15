@@ -1,13 +1,6 @@
 <?php
 include 'head.php';
 include 'sideMenu.php';
-//tambahkan aksi menonaktifkan jadwal yg sudah aktif
-//Jadwal periksaDokter adalah seminggusekali. Pada saat hari H jadwalperiksa, Dokter tidak diperbolehkan mengubahhari maupun jam periksanya.
-
-
-// aku ada tambahan dan berkaitan dengan tanggal. jadi mari kita tentukan kalau setiap hari minggu dokter harus memilih jadwal periksa untuk seminggu kedepan 
-// pemilihan jadwal dimulai dari jam 18.00 hingga 23.59. jika diluar itu maka dokter sudah tidak bisa mengengubah jadwal . dan bisa mengubah lagi di minggu depannya 
-
 
 $message = ''; // Pesan untuk umpan balik pengguna
 
@@ -24,102 +17,151 @@ if (!$id_dokter) {
     die("Dokter tidak ditemukan. Pastikan data Anda valid.");
 }
 
+// Fungsi untuk mengecek waktu valid untuk aktifkan/nonaktifkan jadwal
+function isValidTimeForAction() {
+    $now = new DateTime("now", new DateTimeZone("Asia/Jakarta"));
+    $dayOfWeek = $now->format("l"); // "Sunday", "Monday", ...
+    $currentTime = $now->format("H:i");
+
+    // Waktu valid: Minggu antara 18:00 - 23:59
+    return $dayOfWeek === "Sunday" && $currentTime >= "18:00" && $currentTime <= "23:59";
+}
+
+// Fungsi untuk mengecek waktu valid untuk menambah/mengubah jadwal
+function isValidTimeForSchedule() {
+    return isValidTimeForAction(); // Syarat sama seperti aktifkan/nonaktifkan
+}
+
+// Fungsi untuk mengecek apakah hari ini adalah hari H jadwal aktif
+function isTodayActiveSchedule($conn, $id_dokter) {
+    $today = (new DateTime("now", new DateTimeZone("Asia/Jakarta")))->format("l");
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) FROM jadwal_periksa 
+        WHERE id_dokter = ? AND active = 1 AND hari = ?
+    ");
+    $stmt->bind_param("is", $id_dokter, $today);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $stmt->close();
+    return $count > 0;
+}
+
 // Proses tambah jadwal periksa
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_schedule'])) {
-    $hari = $_POST['hari'] ?? '';
-    $jam_mulai = $_POST['jam_mulai'] ?? '';
-    $jam_selesai = $_POST['jam_selesai'] ?? '';
+    if (!isValidTimeForSchedule()) {
+        $message = "Anda hanya dapat menambah/mengubah jadwal pada hari Minggu antara 18.00 dan 23.59.";
+    } elseif (isTodayActiveSchedule($conn, $id_dokter)) {
+        $message = "Anda tidak dapat mengubah jadwal pada hari H jadwal aktif.";
+    } else {
+        $hari = $_POST['hari'] ?? '';
+        $jam_mulai = $_POST['jam_mulai'] ?? '';
+        $jam_selesai = $_POST['jam_selesai'] ?? '';
 
-    try {
-        $conn->begin_transaction();
+        try {
+            $conn->begin_transaction();
 
-        // Validasi: Pastikan jadwal tidak bertabrakan dengan jadwal lain
-        $stmt_check = $conn->prepare("
-            SELECT COUNT(*) AS jumlah FROM jadwal_periksa 
-            WHERE id_dokter = ? AND hari = ? 
-            AND (
-                (jam_mulai < ? AND jam_selesai > ?) OR
-                (jam_mulai < ? AND jam_selesai > ?) OR
-                (jam_mulai >= ? AND jam_selesai <= ?)
-            )
-        ");
-        $stmt_check->bind_param(
-            "isssssss",
-            $id_dokter, $hari,
-            $jam_selesai, $jam_mulai, // Mulai di tengah jadwal lain
-            $jam_mulai, $jam_selesai, // Selesai di tengah jadwal lain
-            $jam_mulai, $jam_selesai  // Jadwal yang sepenuhnya dalam jadwal lain
-        );
-        $stmt_check->execute();
-        $stmt_check->bind_result($jumlah);
-        $stmt_check->fetch();
-        $stmt_check->close();
+            // Validasi: Pastikan jadwal tidak bertabrakan dengan jadwal lain
+            $stmt_check = $conn->prepare("
+                SELECT COUNT(*) AS jumlah FROM jadwal_periksa 
+                WHERE id_dokter = ? AND hari = ? 
+                AND (
+                    (jam_mulai < ? AND jam_selesai > ?) OR
+                    (jam_mulai < ? AND jam_selesai > ?) OR
+                    (jam_mulai >= ? AND jam_selesai <= ?)
+                )
+            ");
+            $stmt_check->bind_param(
+                "isssssss",
+                $id_dokter, $hari,
+                $jam_selesai, $jam_mulai,
+                $jam_mulai, $jam_selesai,
+                $jam_mulai, $jam_selesai
+            );
+            $stmt_check->execute();
+            $stmt_check->bind_result($jumlah);
+            $stmt_check->fetch();
+            $stmt_check->close();
 
-        if ($jumlah > 0) {
-            throw new Exception("Jadwal periksa bertabrakan dengan jadwal yang sudah ada.");
+            if ($jumlah > 0) {
+                throw new Exception("Jadwal periksa bertabrakan dengan jadwal yang sudah ada.");
+            }
+
+            // Tambahkan jadwal periksa baru
+            $stmt_insert = $conn->prepare("
+                INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai, active) 
+                VALUES (?, ?, ?, ?, 0)
+            ");
+            $stmt_insert->bind_param("isss", $id_dokter, $hari, $jam_mulai, $jam_selesai);
+            $stmt_insert->execute();
+            $stmt_insert->close();
+
+            $conn->commit();
+            $message = "Jadwal periksa berhasil ditambahkan.";
+        } catch (Exception $e) {
+            $conn->rollback();
+            $message = "Gagal menambahkan jadwal: " . $e->getMessage();
         }
-
-        // Tambahkan jadwal periksa baru
-        $stmt_insert = $conn->prepare("
-            INSERT INTO jadwal_periksa (id_dokter, hari, jam_mulai, jam_selesai, active) 
-            VALUES (?, ?, ?, ?, 0)
-        ");
-        $stmt_insert->bind_param("isss", $id_dokter, $hari, $jam_mulai, $jam_selesai);
-        $stmt_insert->execute();
-        $stmt_insert->close();
-
-        $conn->commit();
-        $message = "Jadwal periksa berhasil ditambahkan.";
-    } catch (Exception $e) {
-        $conn->rollback();
-        $message = "Gagal menambahkan jadwal: " . $e->getMessage();
     }
 }
 
 // Proses aktifkan jadwal
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['activate'])) {
-    $id_jadwal = intval($_GET['activate']);
+    if (!isValidTimeForAction()) {
+        $message = "Anda hanya dapat mengaktifkan jadwal pada hari Minggu antara 18.00 dan 23.59.";
+    } elseif (isTodayActiveSchedule($conn, $id_dokter)) {
+        $message = "Anda tidak dapat mengaktifkan jadwal pada hari H jadwal aktif.";
+    } else {
+        $id_jadwal = intval($_GET['activate']);
 
-    try {
-        $conn->begin_transaction();
+        try {
+            $conn->begin_transaction();
 
-        // Nonaktifkan semua jadwal lain
-        $stmt_deactivate = $conn->prepare("UPDATE jadwal_periksa SET active = 0 WHERE id_dokter = ?");
-        $stmt_deactivate->bind_param("i", $id_dokter);
-        $stmt_deactivate->execute();
-        $stmt_deactivate->close();
+            // Nonaktifkan semua jadwal lain
+            $stmt_deactivate = $conn->prepare("UPDATE jadwal_periksa SET active = 0 WHERE id_dokter = ?");
+            $stmt_deactivate->bind_param("i", $id_dokter);
+            $stmt_deactivate->execute();
+            $stmt_deactivate->close();
 
-        // Aktifkan jadwal yang dipilih
-        $stmt_activate = $conn->prepare("UPDATE jadwal_periksa SET active = 1 WHERE id = ? AND id_dokter = ?");
-        $stmt_activate->bind_param("ii", $id_jadwal, $id_dokter);
-        $stmt_activate->execute();
-        $stmt_activate->close();
+            // Aktifkan jadwal yang dipilih
+            $stmt_activate = $conn->prepare("UPDATE jadwal_periksa SET active = 1 WHERE id = ? AND id_dokter = ?");
+            $stmt_activate->bind_param("ii", $id_jadwal, $id_dokter);
+            $stmt_activate->execute();
+            $stmt_activate->close();
 
-        $conn->commit();
-        $message = "Jadwal berhasil diaktifkan.";
-    } catch (Exception $e) {
-        $conn->rollback();
-        $message = "Gagal mengaktifkan jadwal: " . $e->getMessage();
+            $conn->commit();
+            $message = "Jadwal berhasil diaktifkan.";
+        } catch (Exception $e) {
+            $conn->rollback();
+            $message = "Gagal mengaktifkan jadwal: " . $e->getMessage();
+        }
     }
 }
-// proses nonaktifkan jadwal
+
+// Proses nonaktifkan jadwal
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['deactivate'])) {
-    $id_jadwal = intval($_GET['deactivate']);
+    if (!isValidTimeForAction()) {
+        $message = "Anda hanya dapat menonaktifkan jadwal pada hari Minggu antara 18.00 dan 23.59.";
+    } elseif (isTodayActiveSchedule($conn, $id_dokter)) {
+        $message = "Anda tidak dapat menonaktifkan jadwal pada hari H jadwal aktif.";
+    } else {
+        $id_jadwal = intval($_GET['deactivate']);
 
-    try {
-        $conn->begin_transaction();
+        try {
+            $conn->begin_transaction();
 
-        // Nonaktifkan jadwal yang dipilih
-        $stmt_deactivate = $conn->prepare("UPDATE jadwal_periksa SET active = 0 WHERE id = ? AND id_dokter = ?");
-        $stmt_deactivate->bind_param("ii", $id_jadwal, $id_dokter);
-        $stmt_deactivate->execute();
-        $stmt_deactivate->close();
+            // Nonaktifkan jadwal yang dipilih
+            $stmt_deactivate = $conn->prepare("UPDATE jadwal_periksa SET active = 0 WHERE id = ? AND id_dokter = ?");
+            $stmt_deactivate->bind_param("ii", $id_jadwal, $id_dokter);
+            $stmt_deactivate->execute();
+            $stmt_deactivate->close();
 
-        $conn->commit();
-        $message = "Jadwal berhasil dinonaktifkan.";
-    } catch (Exception $e) {
-        $conn->rollback();
-        $message = "Gagal menonaktifkan jadwal: " . $e->getMessage();
+            $conn->commit();
+            $message = "Jadwal berhasil dinonaktifkan.";
+        } catch (Exception $e) {
+            $conn->rollback();
+            $message = "Gagal menonaktifkan jadwal: " . $e->getMessage();
+        }
     }
 }
 
@@ -136,6 +178,8 @@ $result_jadwal = $stmt_jadwal->get_result();
 $stmt_jadwal->close();
 ?>
 
+
+<!-- Tampilan HTML -->
 <h1 class="text-3xl font-bold dark:text-white text-center">Jadwal Periksa Dokter</h1>
 <p class="mt-2 text-gray-600 dark:text-gray-100 text-center">Kelola waktu periksa Anda di sini</p>
 
@@ -169,10 +213,9 @@ $stmt_jadwal->close();
                     </td>
                     <td class="px-6 py-4">
                         <?php if (!$row['active']): ?>
-                            <a href="?activate=<?= $row['id']; ?>" 
-                                class="text-blue-500 hover:underline">Aktifkan</a>
+                            <a href="?activate=<?= $row['id']; ?>" class="text-blue-500 hover:underline">Aktifkan</a>
                         <?php else: ?>
-                            <a href="?deactivate=<?= $row['id']; ?>" class="text-gray-500">Nonaktifkan</a> </a>
+                            <a href="?deactivate=<?= $row['id']; ?>" class="text-gray-500 hover:underline">Nonaktifkan</a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -207,18 +250,18 @@ $stmt_jadwal->close();
                         <option value="Minggu">Minggu</option>
                     </select>
                 </div>
-<!-- Jam Mulai -->
-<div>
-    <label for="jam_mulai" class="block text-sm font-medium text-gray-600 dark:text-gray-300">Jam Mulai</label>
-    <input type="time" id="jam_mulai" name="jam_mulai" required 
-        class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none">
-</div>
-<!-- Jam Selesai -->
-<div>
-    <label for="jam_selesai" class="block text-sm font-medium text-gray-600 dark:text-gray-300">Jam Selesai</label>
-    <input type="time" id="jam_selesai" name="jam_selesai" required 
-        class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none">
-</div>
+                <!-- Jam Mulai -->
+                <div>
+                    <label for="jam_mulai" class="block text-sm font-medium text-gray-600 dark:text-gray-300">Jam Mulai</label>
+                    <input type="time" id="jam_mulai" name="jam_mulai" required 
+                        class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none">
+                </div>
+                <!-- Jam Selesai -->
+                <div>
+                    <label for="jam_selesai" class="block text-sm font-medium text-gray-600 dark:text-gray-300">Jam Selesai</label>
+                    <input type="time" id="jam_selesai" name="jam_selesai" required 
+                        class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none">
+                </div>
                 <!-- Tombol Submit -->
                 <div class="flex justify-end space-x-2">
                     <button type="button" id="closeModalBtn" class="bg-gray-500 text-white py

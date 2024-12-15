@@ -1,8 +1,8 @@
 <?php
 include 'head.php';
 include 'sideMenu.php';
-//tambahkan tampilan jumlah biaya yg dibuatuntuk memprediksi harga yg akan diambil pasien.sebelum dimasukin ke database
-// Pastikan dokter sudah login
+
+// Cek apakah user sudah login
 if (!isset($_SESSION['nip'])) {
     header('Location: login.php');
     exit();
@@ -159,8 +159,14 @@ $stmt_obat->close();
         </div>
     <?php endif; ?>
 
+    <!-- Form Pemeriksaan Baru -->
     <?php if (!$is_already_checked): ?>
         <form action="" method="POST" class="space-y-4 mt-4">
+            <!-- Keluhan Pasien -->
+            <div>
+                <label for="keluhan" class="block text-sm font-medium text-gray-600 dark:text-gray-300">Keluhan Pasien</label>
+                <p class="text-sm text-gray-600 dark:text-gray-300"> <?= htmlspecialchars($pasien['keluhan']); ?></p>
+            </div>
             <!-- Catatan -->
             <div>
                 <label for="catatan" class="block text-sm font-medium text-gray-600 dark:text-gray-300">Catatan Pemeriksaan</label>
@@ -168,18 +174,27 @@ $stmt_obat->close();
                     class="w-full px-4 py-2 mt-1 border rounded-lg focus:ring focus:ring-indigo-200 focus:outline-none"
                     placeholder="Tambahkan catatan pemeriksaan..." required></textarea>
             </div>
+
             <!-- Obat -->
             <div>
                 <label class="block text-sm font-medium text-gray-600 dark:text-gray-300">Obat yang Digunakan</label>
                 <?php while ($row = $result_obat->fetch_assoc()): ?>
                     <div class="flex items-center space-x-2 mt-2">
-                        <input type="checkbox" name="obat[]" value="<?= $row['id']; ?>" id="obat-<?= $row['id']; ?>" />
+                        <input type="checkbox" name="obat[]" value="<?= $row['id']; ?>" id="obat-<?= $row['id']; ?>" 
+                            data-harga="<?= $row['harga']; ?>" class="obat-checkbox" />
                         <label for="obat-<?= $row['id']; ?>" class="text-gray-600 dark:text-gray-300">
                             <?= htmlspecialchars($row['nama_obat']); ?> (<?= htmlspecialchars($row['kemasan']); ?>) - Rp. <?= number_format($row['harga'], 0, ',', '.'); ?>
                         </label>
                     </div>
                 <?php endwhile; ?>
             </div>
+
+            <!-- Prediksi Biaya -->
+            <div class="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded border text-gray-800 dark:text-gray-300">
+                <p class="font-medium">Prediksi Total Biaya:</p>
+                <p id="prediksi-biaya" class="text-xl font-bold">Rp. 150.000</p>
+            </div>
+
             <!-- Tombol Submit -->
             <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
                 Simpan Pemeriksaan
@@ -194,19 +209,19 @@ $stmt_obat->close();
     <table class="mt-4 w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
             <tr>
-                <th scope="col" class="px-6 py-3">Tanggal</th>
-                <th scope="col" class="px-6 py-3">Catatan</th>
-                <th scope="col" class="px-6 py-3">Keluhan</th>
-                <th scope="col" class="px-6 py-3">Biaya</th>
+                <th scope="col" class="px-6 py-3">Tanggal Periksa </th>
+                <th scope="col" class="px-6 py-3">Keluhan Pasien</th>
+                <th scope="col" class="px-6 py-3">Catatan Dokter</th>
+                <th scope="col" class="px-6 py-3">Biaya Pengobatan</th>
                 <th scope="col" class="px-6 py-3">Obat</th>
             </tr>
         </thead>
         <tbody>
             <?php while ($row = $result_riwayat->fetch_assoc()): ?>
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <td class="px-6 py-4"><?= htmlspecialchars(date('d-m-Y', strtotime($row['tanggal']))); ?></td>
-                    <td class="px-6 py-4"><?= htmlspecialchars($row['catatan']); ?></td>
+                    <td class="px-6 py-4"><?= htmlspecialchars(date('l, d-m-Y', strtotime($row['tanggal']))); ?></td>                 
                     <td class="px-6 py-4"><?= htmlspecialchars($row['keluhan_saat_pemeriksaan']); ?></td>
+                    <td class="px-6 py-4"><?= htmlspecialchars($row['catatan']); ?></td>
                     <td class="px-6 py-4">Rp. <?= number_format($row['biaya'], 0, ',', '.'); ?></td>
                     <td class="px-6 py-4"><?= htmlspecialchars($row['obat']); ?></td>
                 </tr>
@@ -215,6 +230,33 @@ $stmt_obat->close();
     </table>
 </div>
 
+<script>
+// JavaScript untuk menghitung total biaya secara dinamis
+document.addEventListener('DOMContentLoaded', () => {
+    const checkboxes = document.querySelectorAll('.obat-checkbox');
+    const prediksiBiayaElem = document.getElementById('prediksi-biaya');
+    const biayaJasaDokter = 150000; // Biaya jasa dokter tetap
+
+    function updateTotalBiaya() {
+        let totalBiaya = biayaJasaDokter;
+
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                totalBiaya += parseInt(checkbox.getAttribute('data-harga'));
+            }
+        });
+
+        prediksiBiayaElem.textContent = 'Rp. ' + totalBiaya.toLocaleString('id-ID');
+    }
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateTotalBiaya);
+    });
+
+    // Perbarui total biaya saat halaman dimuat
+    updateTotalBiaya();
+});
+</script>
 <script src="../admin/script.js"></script>
 </body>
 </html>

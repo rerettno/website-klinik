@@ -14,15 +14,16 @@ if (!$id_dokter) {
     die("Dokter tidak ditemukan. Pastikan data Anda valid.");
 }
 
-// Ambil semua pasien dan riwayat mereka, termasuk obat yang diberikan
 $stmt_pasien = $conn->prepare("
     SELECT 
         pasien.id AS id_pasien, 
-        pasien.nama,
+        pasien.nama, 
         MAX(periksa.tgl_periksa) AS tgl_terakhir,
         GROUP_CONCAT(
             CONCAT(
                 periksa.tgl_periksa, '|', 
+                jadwal_periksa.hari, ' ',
+                jadwal_periksa.jam_mulai, '-', jadwal_periksa.jam_selesai, '|',  
                 daftar_poli.keluhan, '|', 
                 periksa.catatan, '|', 
                 COALESCE(
@@ -108,9 +109,10 @@ $stmt_pasien->close();
             <table class="table-auto min-w-full text-sm text-left text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                     <tr>
-                        <th scope="col" class="px-6 py-3 min-w-[150px] border border-gray-200 dark:border-gray-700">Tanggal Pemeriksaan</th>
+                        <th scope="col" class="px-6 py-3 min-w-[150px] border border-gray-200 dark:border-gray-700">Tanggal Periksa</th>
+                        <th scope="col" class="px-6 py-3 min-w-[150px] border border-gray-200 dark:border-gray-700">Jadwal Periksa</th>
                         <th scope="col" class="px-6 py-3 min-w-[200px] border border-gray-200 dark:border-gray-700">Keluhan Pasien</th>
-                        <th scope="col" class="px-6 py-3 min-w-[200px] border border-gray-200 dark:border-gray-700">Catatan Pemeriksaan</th>
+                        <th scope="col" class="px-6 py-3 min-w-[200px] border border-gray-200 dark:border-gray-700">Catatan Dokter</th>
                         <th scope="col" class="px-6 py-3 min-w-[150px] border border-gray-200 dark:border-gray-700">Obat</th>
                     </tr>
                 </thead>
@@ -142,10 +144,11 @@ function showRiwayat(nama, riwayat) {
 
     const records = riwayat.split('||');
     records.forEach(record => {
-        const [tgl_periksa, keluhan, catatan, obat] = record.split('|');
+        const [tgl_periksa,hari, keluhan, catatan, obat] = record.split('|');
         const row = document.createElement('tr');
         row.innerHTML = `
             <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${tgl_periksa}</td>
+            <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${hari}</td>
             <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${keluhan}</td>
             <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${catatan}</td>
             <td class="px-4 py-2 border border-gray-200 dark:border-gray-700">${obat}</td>
