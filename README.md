@@ -11,24 +11,24 @@
 ---
 
 ## **Fitur**
----**ADMIN**---
----**DOKTER**---
----**PASIEN**---
-1. **Pendaftaran Pasien**
-   - Pasien dapat memilih poli dan jadwal dokter.
-   - Pasien memasukkan keluhan mereka saat mendaftar.
-2. **Daftar Menunggu**
-   - Menampilkan daftar pendaftaran pasien yang belum diperiksa.
-   - Data otomatis dihapus jika sudah lewat 1 hari (berdasarkan tanggal daftar).
-3. **Riwayat Pemeriksaan**
-   - Menampilkan riwayat pemeriksaan pasien, termasuk catatan dokter dan obat yang diberikan.
-4. **Penghapusan Otomatis**
-   - Data pasien yang tidak diperiksa akan dihapus otomatis saat melewati pukul 00:00 keesokan harinya.
+- Login Admin dan Dokter
+- (Admin Section) CRUD Data Poli
+- (Admin Section) CRUD Data Dokter
+- (Admin Section) CRUD Data Obat
+- (Admin Section) Pendaftaran Pasien
+- (Dokter Section) Mengelola Data Diri
+- (Dokter Section) Pemeriksa pasien dan riwayat pasien
+- (Pasien Section) Login dan Register
+- (Pasien Section) Pendaftaran Poli
 
+**NOTES**
+admin : **`user id`** = adm001, **`pass`** = 12345
+dokter : **`pass awal`** = 12345
 ---
 
 ## **Tools**
 - **PHP Native**: Backend tanpa framework untuk pengelolaan logika aplikasi.
+- **Tailwind CSS**: Tampilan untuk Website
 - **MySQL**: Database untuk menyimpan data pasien, poli, dokter, dan jadwal.
 
 ---
@@ -51,7 +51,7 @@ File database terdapat di folder `db/`. Gunakan file SQL yang tersedia untuk mem
 ## **Cara Menjalankan**
 1. Clone repository ini:
    ```bash
-   git clone https://github.com/username/repository-name.git
+   git clone https://github.com/rerettno/website-klinik.git
    ```
 2. Import database:
    - Masuk ke folder `db/`.
