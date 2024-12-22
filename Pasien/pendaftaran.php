@@ -1,7 +1,5 @@
 <?php
 include 'head.php';
-//sisa benerin nomor antrian. bagusnya tambah kolom didatabasenya ya tgl_daftar untuk mempermudah no antrian terus ditambahin kolom tgl mendaftar.  tambah juga jadwa tgl diperiksanya kapan tp g masuk database
-// Pastikan pasien sudah login
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();//ase
@@ -9,6 +7,47 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $message = "";
+
+// Hapus otomatis pendaftaran yang sudah lewat sehari penuh
+$stmt_hapus_otomatis = $conn->prepare("
+    DELETE FROM daftar_poli 
+    WHERE tgl_daftar < CURDATE() AND active = 0
+");
+$stmt_hapus_otomatis->execute();
+$stmt_hapus_otomatis->close();
+
+// Ambil daftar poli untuk dropdown
+$stmt_poli = $conn->prepare("SELECT id, nama_poli FROM poli WHERE active = 1");
+$stmt_poli->execute();
+$result_poli = $stmt_poli->get_result();
+$stmt_poli->close();
+
+// Default nilai poli dan jadwal
+$selected_poli = $_POST['poli'] ?? null;
+$jadwal_options = [];
+
+// Ambil jadwal dokter berdasarkan poli yang dipilih
+if (!empty($selected_poli)) {
+    $stmt_jadwal = $conn->prepare("
+        SELECT 
+            jadwal_periksa.id, 
+            dokter.nama AS nama_dokter, 
+            jadwal_periksa.hari, 
+            jadwal_periksa.jam_mulai, 
+            jadwal_periksa.jam_selesai 
+        FROM jadwal_periksa
+        JOIN dokter ON jadwal_periksa.id_dokter = dokter.id
+        JOIN poli ON dokter.id_poli = poli.id
+        WHERE poli.id = ? AND jadwal_periksa.active = 1
+    ");
+    $stmt_jadwal->bind_param('i', $selected_poli);
+    $stmt_jadwal->execute();
+    $result_jadwal = $stmt_jadwal->get_result();
+    while ($row = $result_jadwal->fetch_assoc()) {
+        $jadwal_options[] = $row;
+    }
+    $stmt_jadwal->close();
+}
 
 // Ambil waktu server saat inio
 $current_date = new DateTime("now", new DateTimeZone("Asia/Jakarta"));
@@ -148,10 +187,11 @@ $stmt_menunggu = $conn->prepare("
         jadwal_periksa.hari,
         jadwal_periksa.jam_mulai,
         jadwal_periksa.jam_selesai,
-        daftar_poli.keluhan
+        daftar_poli.keluhan,
+        poli.nama_poli
     FROM daftar_poli
     JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id
-    JOIN dokter ON jadwal_periksa.id_dokter = dokter.id
+    JOIN dokter ON jadwal_periksa.id_dokter = dokter.id join poli on dokter.id_poli = poli.id
     WHERE daftar_poli.id_pasien = ? AND daftar_poli.active = 0
     ORDER BY daftar_poli.no_antrian ASC
 ");
@@ -166,6 +206,7 @@ $stmt_riwayat = $conn->prepare("
         periksa.tgl_periksa,
         dokter.nama AS nama_dokter,
         daftar_poli.keluhan,
+        poli.nama_poli,
         periksa.catatan,
         COALESCE(
             (SELECT GROUP_CONCAT(obat.nama_obat SEPARATOR ', ') 
@@ -177,7 +218,7 @@ $stmt_riwayat = $conn->prepare("
     FROM periksa
     JOIN daftar_poli ON periksa.id_daftar_poli = daftar_poli.id
     JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id
-    JOIN dokter ON jadwal_periksa.id_dokter = dokter.id
+    JOIN dokter ON jadwal_periksa.id_dokter = dokter.id JOIN poli on dokter.id_poli = poli.id
     WHERE daftar_poli.id_pasien = ?
     ORDER BY periksa.tgl_periksa DESC
 ");
@@ -194,29 +235,43 @@ $stmt_riwayat->close();
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
             <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-100">Form Pendaftaran</h2>
             <?php if (!empty($message)): ?>
-                <div class="mt-4 bg-teal-100 border-t-4 border-teal-500 text-teal-900 px-4 py-3 rounded">
+                <div id="flash-message" class="mt-4 bg-teal-100 border-t-4 border-teal-500 text-teal-900 px-4 py-3 rounded">
                     <?= htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>
 
             <form action="" method="POST" class="mt-4">
-                <div class="mb-4">
-                    <label for="keluhan" class="block text-gray-700 font-medium">Keluhan</label>
-                    <textarea name="keluhan" id="keluhan" rows="3" required
-                        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-teal-200 focus:outline-none"></textarea>
+                 <div class="mb-4">
+                    <label for="poli" class="block text-gray-700 font-medium">Pilih Poli</label>
+                    <select name="poli" id="poli" required
+                        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-teal-200 focus:outline-none"
+                        onchange="this.form.submit()">
+                        <option value="" disabled selected>Pilih poli</option>
+                        <?php while ($row = $result_poli->fetch_assoc()): ?>
+                            <option value="<?= $row['id']; ?>" <?= $selected_poli == $row['id'] ? 'selected' : ''; ?>>
+                                <?= htmlspecialchars($row['nama_poli']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
                 </div>
                 <div class="mb-4">
                     <label for="jadwal" class="block text-gray-700 font-medium">Pilih Jadwal Dokter</label>
                     <select name="jadwal" id="jadwal" required
                         class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-teal-200 focus:outline-none">
                         <option value="" disabled selected>Pilih jadwal</option>
-                        <?php while ($row = $result_jadwal->fetch_assoc()): ?>
-                            <option value="<?= $row['id']; ?>">
-                                <?= htmlspecialchars($row['nama_dokter'] . " - " . $row['hari'] . " (" . $row['jam_mulai'] . " - " . $row['jam_selesai'] . ")"); ?>
+                        <?php foreach ($jadwal_options as $jadwal): ?>
+                            <option value="<?= $jadwal['id']; ?>">
+                                <?= htmlspecialchars($jadwal['nama_dokter'] . " - " . $jadwal['hari'] . " (" . $jadwal['jam_mulai'] . " - " . $jadwal['jam_selesai'] . ")"); ?>
                             </option>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </select>
                 </div>
+                <div class="mb-4">
+                    <label for="keluhan" class="block text-gray-700 font-medium">Keluhan</label>
+                    <textarea name="keluhan" id="keluhan" rows="3" required
+                        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-teal-200 focus:outline-none"></textarea>
+                </div>
+                
                 <button type="submit"
                     class="w-full bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-400 transition">Daftar</button>
             </form>
@@ -234,6 +289,7 @@ $stmt_riwayat->close();
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                         <tr>
                             <th class="px-6 py-3">Nomor Antrian</th>
+                            <th class="px-6 py-3">Poli</th>
                             <th class="px-6 py-3">Dokter</th>
                             <th class="px-6 py-3">Jadwal</th>
                             <th class="px-6 py-3">Keluhan</th>
@@ -243,6 +299,7 @@ $stmt_riwayat->close();
                         <?php while ($row = $result_menunggu->fetch_assoc()): ?>
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                 <td class="px-6 py-4"><?= htmlspecialchars($row['no_antrian']); ?></td>
+                                <td class="px-6 py-4"><?= htmlspecialchars($row['nama_poli']); ?></td>
                                 <td class="px-6 py-4"><?= htmlspecialchars($row['nama_dokter']); ?></td>
                                 <td class="px-6 py-4"><?= htmlspecialchars("{$row['hari']} ({$row['jam_mulai']} - {$row['jam_selesai']})"); ?></td>
                                 <td class="px-6 py-4"><?= htmlspecialchars($row['keluhan']); ?></td>
@@ -265,6 +322,7 @@ $stmt_riwayat->close();
                     <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                         <tr>
                             <th class="px-6 py-3">Tanggal Pemeriksaan</th>
+                            <th class="px-6 py-3">Poli</th>
                             <th class="px-6 py-3">Dokter</th>
                             <th class="px-6 py-3">Keluhan</th>
                             <th class="px-6 py-3">Catatan</th>
@@ -275,6 +333,7 @@ $stmt_riwayat->close();
                         <?php while ($row = $result_riwayat->fetch_assoc()): ?>
                             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                 <td class="px-6 py-4"><?= htmlspecialchars(date('d-m-Y', strtotime($row['tgl_periksa']))); ?></td>
+                                <td class="px-6 py-4"><?= htmlspecialchars($row['nama_poli']); ?></td>
                                 <td class="px-6 py-4"><?= htmlspecialchars($row['nama_dokter']); ?></td>
                                 <td class="px-6 py-4"><?= htmlspecialchars($row['keluhan']); ?></td>
                                 <td class="px-6 py-4"><?= htmlspecialchars($row['catatan']); ?></td>
@@ -286,6 +345,7 @@ $stmt_riwayat->close();
             <?php endif; ?>
         </section>
     </main>
+    <script src ="../admin/script.js"></script>
 </body>
 
 </html>

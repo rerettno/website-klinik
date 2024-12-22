@@ -154,7 +154,7 @@ $stmt_obat->close();
     <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-100">Pemeriksaan Baru</h2>
 
     <?php if (!empty($message)): ?>
-        <div class="mt-4 p-4 <?= strpos($message, 'berhasil') !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'; ?> border rounded">
+        <div id="flash-message" class="mt-4 p-4 <?= strpos($message, 'berhasil') !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'; ?> border rounded">
             <?= $message; ?>
         </div>
     <?php endif; ?>
