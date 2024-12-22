@@ -21,9 +21,9 @@
 - (Pasien Section) Login dan Register
 - (Pasien Section) Pendaftaran Poli
 
-**NOTES**
-admin : **`user id`** = adm001, **`pass`** = 12345
-dokter : **`pass awal`** = 12345
+*NOTES*,
+- admin : **`user id`** = adm001, **`pass`** = 12345
+- dokter : **`pass awal`** = 12345
 ---
 
 ## **Tools**
