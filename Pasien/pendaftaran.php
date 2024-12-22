@@ -228,6 +228,8 @@ $result_riwayat = $stmt_riwayat->get_result();
 $stmt_riwayat->close();
 ?>
 
+
+
     <main class="container mx-auto mt-6">
         <!-- Form Pendaftaran -->
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
