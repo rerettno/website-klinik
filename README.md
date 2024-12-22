@@ -11,6 +11,9 @@
 ---
 
 ## **Fitur**
+---**ADMIN**---
+---**DOKTER**---
+---**PASIEN**---
 1. **Pendaftaran Pasien**
    - Pasien dapat memilih poli dan jadwal dokter.
    - Pasien memasukkan keluhan mereka saat mendaftar.
@@ -37,8 +40,11 @@ File database terdapat di folder `db/`. Gunakan file SQL yang tersedia untuk mem
 1. **`poli`**: Menyimpan daftar poli.
 2. **`dokter`**: Menyimpan daftar dokter beserta poli yang mereka layani.
 3. **`jadwal_periksa`**: Menyimpan jadwal dokter.
-4. **`daftar_poli`**: Menyimpan data pendaftaran pasien.
-5. **`periksa`**: Menyimpan data pemeriksaan pasien.
+4. **`pasien`**: Menyimpan data pasien
+5. **`daftar_poli`**: Menyimpan data pendaftaran pasien.
+6. **`periksa`**: Menyimpan data pemeriksaan pasien.
+7. **`detail_periksa`**: Menyimpan detail pemeriksaan pasien.
+8. **`obat`**: Menympan data obat.
 
 ---
 
