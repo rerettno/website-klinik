@@ -113,7 +113,7 @@ if ($current_day === 'sunday' && $current_time >= '18:00' && $current_time <= '2
                 ) {
                     $message = "Pendaftaran tidak dapat dilakukan karena waktu jadwal sudah selesai untuk hari ini.";
                 } elseif ($tanggal_jadwal > $end_sunday) {
-                    $message = "Pendaftaran tidak dapat dilakukan karena jssadwal sudah melewati batas waktu minggu ini.";
+                    $message = "Pendaftaran tidak dapat dilakukan karena jadwal sudah melewati batas waktu minggu ini.";
                 } else {
                     // Cek apakah pasien sudah terdaftar pada jadwal tersebut
                     $stmt_cek = $conn->prepare("
@@ -227,8 +227,6 @@ $stmt_riwayat->execute();
 $result_riwayat = $stmt_riwayat->get_result();
 $stmt_riwayat->close();
 ?>
-
-
 
     <main class="container mx-auto mt-6">
         <!-- Form Pendaftaran -->
