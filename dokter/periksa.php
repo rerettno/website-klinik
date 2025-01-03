@@ -19,7 +19,7 @@ $stmt_antrian = $conn->prepare("
     SELECT 
         daftar_poli.id AS id_daftar,
         daftar_poli.no_antrian,
-        pasien.nama,
+        pasien.nama,pasien.no_rm,
         daftar_poli.keluhan,jadwal_periksa.*
     FROM daftar_poli
     JOIN pasien ON daftar_poli.id_pasien = pasien.id
@@ -54,6 +54,7 @@ $stmt_antrian->close();
                 <tr>
                     <th scope="col" class="px-6 py-3">Nomor Antrian</th>
                     <th scope="col" class="px-6 py-3">Nama Pasien</th>
+                    <th scope="col" class="px-6 py-3">No Rekam Medis</th>
                     <th scope="col" class="px-6 py-3">Jadwal Periksa</th>
                     <th scope="col" class="px-6 py-3">Keluhan Pasien</th>
                     <th scope="col" class="px-6 py-3">Aksi</th>
@@ -64,6 +65,7 @@ $stmt_antrian->close();
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <td class="px-6 py-4"><?= htmlspecialchars($row['no_antrian']); ?></td>
                         <td class="px-6 py-4"><?= htmlspecialchars($row['nama']); ?></td>
+                        <td class="px-6 py-4"><?= htmlspecialchars($row['no_rm']); ?></td>
                         <td class="px-6 py-4"><?= htmlspecialchars($row['hari'] . ', ' . $row['jam_mulai'] . ' - ' . $row['jam_selesai']); ?></td>
                         <td class="px-6 py-4"><?= htmlspecialchars($row['keluhan']); ?></td>
                         <td class="px-6 py-4 flex space-x-2">

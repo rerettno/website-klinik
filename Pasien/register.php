@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_GET['id'])) {
     <div class="container mx-auto max-w-xl">
         <h1 class="text-3xl font-bold text-center mb-6">Pendaftaran Pasien</h1>
         <?php if ($message): ?>
-            <div class="mb-4 p-4 text-white bg-teal-400 rounded-lg text-center">
+            <div id="flash-message" class="mb-4 p-4 text-white bg-teal-400 rounded-lg text-center">
                 <?= htmlspecialchars($message) ?>
             </div>
         <?php endif; ?>
@@ -115,6 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_GET['id'])) {
     </div>
 </footer>
 
-<script src="script.js"></script>
+<script src="../admin/script.js"></script>
 </body>
 </html>

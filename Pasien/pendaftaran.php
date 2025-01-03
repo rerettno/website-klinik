@@ -8,6 +8,14 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $message = "";
 
+// Ambil no_rm pasien berdasarkan user_id
+$stmt_no_rm = $conn->prepare("SELECT no_rm FROM pasien WHERE id = ?");
+$stmt_no_rm->bind_param("i", $user_id);
+$stmt_no_rm->execute();
+$stmt_no_rm->bind_result($no_rm);
+$stmt_no_rm->fetch();
+$stmt_no_rm->close();
+
 // Hapus otomatis pendaftaran yang sudah lewat sehari penuh
 $stmt_hapus_otomatis = $conn->prepare("
     DELETE FROM daftar_poli 
@@ -242,6 +250,11 @@ $stmt_riwayat->close();
 
             <form action="" method="POST" class="mt-4">
                  <div class="mb-4">
+                    <label for="no_rm" class="block text-gray-700 font-medium">Nomor Rekam Medis</label>
+                    <input type="text" id="no_rm" name="no_rm" value="<?= htmlspecialchars($no_rm); ?>" 
+                        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-teal-200 focus:outline-none bg-gray-100"
+                        readonly>
+
                     <label for="poli" class="block text-gray-700 font-medium">Pilih Poli</label>
                     <select name="poli" id="poli" required
                         class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-teal-200 focus:outline-none"

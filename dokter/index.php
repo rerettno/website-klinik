@@ -19,7 +19,7 @@ $stmt_antrian = $conn->prepare("
     SELECT 
         daftar_poli.id AS id_daftar,
         daftar_poli.no_antrian,
-        pasien.nama,
+        pasien.nama, pasien.no_rm,
         daftar_poli.keluhan,
         jadwal_periksa.*
     FROM daftar_poli

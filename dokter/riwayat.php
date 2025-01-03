@@ -17,7 +17,7 @@ if (!$id_dokter) {
 $stmt_pasien = $conn->prepare("
     SELECT 
         pasien.id AS id_pasien, 
-        pasien.nama, 
+        pasien.nama, pasien.no_rm,
         MAX(periksa.tgl_periksa) AS tgl_terakhir,
         GROUP_CONCAT(
             CONCAT(
@@ -65,6 +65,7 @@ $stmt_pasien->close();
         <table class="mt-4 w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-200">
                 <tr>
+                    <th scope="col" class="px-6 py-3">No. RM</th>
                     <th scope="col" class="px-6 py-3">Nama Pasien</th>
                     <th scope="col" class="px-6 py-3">Tanggal Terakhir Periksa</th>
                     <th scope="col" class="px-6 py-3">Aksi</th>
@@ -73,6 +74,7 @@ $stmt_pasien->close();
             <tbody>
                 <?php while ($row = $result_pasien->fetch_assoc()): ?>
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-6 py-4"><?= htmlspecialchars($row['no_rm']); ?></td>
                         <td class="px-6 py-4"><?= htmlspecialchars($row['nama']); ?></td>
                         <td class="px-6 py-4"><?= htmlspecialchars(date('d-m-Y', strtotime($row['tgl_terakhir']))); ?></td>
                         <td class="px-6 py-4">
