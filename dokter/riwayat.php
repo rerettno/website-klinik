@@ -82,6 +82,7 @@ $stmt_pasien->close();
                                 class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600" 
                                 onclick="showRiwayat(
                                     '<?= htmlspecialchars($row['nama'], ENT_QUOTES); ?>', 
+                                    '<?= htmlspecialchars($row['no_rm'], ENT_QUOTES); ?>',
                                     '<?= htmlspecialchars($row['riwayat'], ENT_QUOTES); ?>'
                                 )">
                                 Lihat Riwayat
@@ -106,6 +107,9 @@ $stmt_pasien->close();
         <h3 class="text-xl font-bold text-gray-700 dark:text-gray-100 mb-4">Riwayat Pemeriksaan</h3>
         <p class="mb-4">
             <strong>Nama Pasien:</strong> <span id="modal-nama" class="text-gray-800 dark:text-gray-200"></span>
+        </p>
+        <p class="mb-4">
+            <strong>No RM:</strong> <span id="modal-no_rm" class="text-gray-800 dark:text-gray-200"></span>
         </p>
         <div class="overflow-x-auto">
             <table class="table-auto min-w-full text-sm text-left text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
@@ -138,8 +142,9 @@ $stmt_pasien->close();
 
 <script src="../admin/script.js"></script>
 <script>
-function showRiwayat(nama, riwayat) {
+function showRiwayat(nama,no_rm, riwayat) {
     document.getElementById('modal-nama').textContent = nama;
+    document.getElementById('modal-no_rm').textContent = no_rm;
 
     const tbody = document.getElementById('modal-riwayat');
     tbody.innerHTML = ''; // Kosongkan isi tabel

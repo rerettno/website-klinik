@@ -67,7 +67,7 @@ $stmt_jadwal_dokter->close();
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Statistik Pasien Hari Ini -->
         <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg flex flex-col items-center">
-            <h2 class="text-2xl font-semibold">Jumlah Pasien Belum Diperiksa Hari Ini</h2>
+            <h2 class="text-2xl font-semibold">Jumlah Pasien Menunggu Diperiksa </h2>
             <p class="text-6xl font-bold mt-4"><?= $jumlah_pasien; ?></p>
         </div>
 
