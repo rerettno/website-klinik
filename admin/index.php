@@ -58,7 +58,6 @@ $stmt_jadwal_hari_ini->close();
 
 
 // Ambil daftar pasien yang diperiksa hari ini
-$current_date = (new DateTime("now", new DateTimeZone("Asia/Jakarta")))->format('Y-m-d');
 $stmt_pasien_hari_ini = $conn->prepare("
     SELECT 
         daftar_poli.no_antrian,
@@ -66,16 +65,21 @@ $stmt_pasien_hari_ini = $conn->prepare("
         poli.nama_poli,
         dokter.nama AS nama_dokter,
         pasien.nama AS nama_pasien,
-        daftar_poli.active
+        daftar_poli.active AS status_pedaftaran,
+        jadwal_periksa.hari,
+        jadwal_periksa.jam_mulai,
+        jadwal_periksa.jam_selesai
     FROM daftar_poli
     JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id
     JOIN dokter ON jadwal_periksa.id_dokter = dokter.id
     JOIN poli ON dokter.id_poli = poli.id
     JOIN pasien ON daftar_poli.id_pasien = pasien.id
-    WHERE daftar_poli.tgl_daftar = ?
+    WHERE jadwal_periksa.hari = ?
+      AND jadwal_periksa.active = 1
+      AND daftar_poli.active = 0
     ORDER BY daftar_poli.no_antrian ASC
 ");
-$stmt_pasien_hari_ini->bind_param('s', $current_date);
+$stmt_pasien_hari_ini->bind_param('s', $current_day);
 $stmt_pasien_hari_ini->execute();
 $result_pasien_hari_ini = $stmt_pasien_hari_ini->get_result();
 $total_pasien_hari_ini = $result_pasien_hari_ini->num_rows;
@@ -164,8 +168,9 @@ $stmt_pasien_hari_ini->close();
                                 <td class="py-3 px-4"><?= htmlspecialchars($row['nama_dokter']); ?></td>
                                 <td class="py-3 px-4"><?= htmlspecialchars($row['keluhan']); ?></td>
                                 <td class="py-3 px-4">
-                                    <?= $row['active'] == 1 ? '<span class="text-green-500">Selesai</span>' : '<span class="text-yellow-500">Menunggu</span>'; ?>
+                                    <?= $row['status_pedaftaran'] == 1 ? '<span class="text-green-500">Selesai</span>' : '<span class="text-yellow-500">Menunggu</span>'; ?>
                                 </td>
+
                             </tr>
                         <?php endwhile; ?>
                     </tbody>
