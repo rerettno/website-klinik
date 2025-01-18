@@ -173,3 +173,85 @@ function hideRiwayat() {
 </script>
 </body>
 </html>
+<script>
+    function openEditPopup(data) {
+        document.getElementById('edit_id').value = data.id;
+        document.getElementById('edit_subject').value = data.subject;
+        document.getElementById('edit_pertanyaan').value = data.pertanyaan;
+        document.getElementById('edit-popup').classList.remove('hidden');
+    }
+
+    function closeEditPopup() {
+        document.getElementById('edit-popup').classList.add('hidden');
+    }
+</script>
+
+<script>
+    function openEditPopup(data) {
+        document.getElementById('edit_id').value = data.id;
+        document.getElementById('edit_subject').value = data.subject;
+        document.getElementById('edit_pertanyaan').value = data.pertanyaan;
+        document.getElementById('edit-popup').classList.remove('hidden');
+    }
+
+    function closeEditPopup() {
+        document.getElementById('edit-popup').classList.add('hidden');
+    }
+</script>
+
+<div id="edit-popup" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg shadow-md w-96">
+        <h3 class="text-xl font-bold mb-4">Edit Konsultasi</h3>
+        <form id="edit-form" action="" method="POST">
+            <input type="hidden" name="edit_id" id="edit_id">
+            <div class="mb-4">
+                <label for="edit_subject" class="block font-medium">Subject</label>
+                <input type="text" id="edit_subject" name="edit_subject" class="w-full px-4 py-2 border rounded-lg focus:ring">
+            </div>
+            <div class="mb-4">
+                <label for="edit_pertanyaan" class="block font-medium">Pertanyaan</label>
+                <textarea id="edit_pertanyaan" name="edit_pertanyaan" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="closeEditPopup()" class="px-4 py-2 bg-gray-400 text-white rounded-lg mr-2">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 bg-teal-500 text-white rounded-lg">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<tbody>
+    <?php while ($row = $result_konsultasi->fetch_assoc()): ?>
+        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+            <td class="px-4 py-2"><?= htmlspecialchars($row['tgl_konsultasi']); ?></td>
+            <td class="px-4 py-2"><?= htmlspecialchars($row['subject']); ?></td>
+            <td class="px-4 py-2"><?= htmlspecialchars($row['pertanyaan']); ?></td>
+            <td class="px-4 py-2">
+                <?= $row['jawaban'] ? htmlspecialchars($row['jawaban']) : '<span class="text-yellow-500">Belum Dijawab</span>'; ?>
+            </td>
+            <td class="px-4 py-2 flex space-x-2">
+                <!-- Tombol Edit -->
+                <button 
+                    type="button" 
+                    class="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-400 transition"
+                    onclick="openEditPopup(<?= htmlspecialchars(json_encode($row)); ?>)"
+                >
+                    Edit
+                </button>
+
+                <!-- Tombol Delete -->
+                <form action="" method="POST" onsubmit="return confirm('Yakin ingin menghapus konsultasi ini?');">
+                    <input type="hidden" name="delete_id" value="<?= $row['id']; ?>">
+                    <button type="submit" 
+                        class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-400 transition">
+                        Delete
+                    </button>
+                </form>
+            </td>
+        </tr>
+    <?php endwhile; ?>
+</tbody>
